@@ -111,23 +111,28 @@
 
 <section class="mx-auto max-w-6xl px-4 py-8">
 	<div class="mb-6">
-		<a
-			href="/manage"
-			aria-label="Back to management"
-			class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-gray-300 hover:bg-gray-100 focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none dark:border-zinc-700 dark:hover:bg-zinc-800"
-		>
-			<svg
-				xmlns="http://www.w3.org/2000/svg"
-				viewBox="0 0 24 24"
-				fill="none"
-				stroke="currentColor"
-				class="h-5 w-5"
+		<h1 class="text-3xl font-bold">
+			<a
+				href="/manage"
+				aria-label="Back to management"
+				class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-gray-300 hover:bg-gray-100 focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none dark:border-zinc-700 dark:hover:bg-zinc-800"
 			>
-				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-			</svg>
-		</a>
-
-		<h1 class="text-3xl font-bold">Business hours</h1>
+				<svg
+					xmlns="http://www.w3.org/2000/svg"
+					viewBox="0 0 24 24"
+					fill="none"
+					stroke="currentColor"
+					class="h-5 w-5"
+				>
+					<path
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						stroke-width="2"
+						d="M15 19l-7-7 7-7"
+					/>
+				</svg>
+			</a>Business hours
+		</h1>
 		<p class="mt-1 text-sm text-gray-600 dark:text-gray-300">
 			Toggle a weekday open/closed and set default hours.
 		</p>

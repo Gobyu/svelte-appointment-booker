@@ -1,19 +1,18 @@
 <script lang="ts">
-	const API_HOLIDAYS = '/api/admin/holiday-hours';
+	const API_SPECIAL = '/api/admin/special-days';
 
-	type HolidayRow = {
+	type SpecialRow = {
 		id: number;
-		holiday: string;
+		start_date: string; // YYYY-MM-DD
+		end_date: string | null; // YYYY-MM-DD | null
+		label: string;
 		comment: string | null;
-		is_open: boolean;
-		start_time: string | null;
-		end_time: string | null;
-		start_month: number;
-		start_day: number;
-		end_month: number;
-		end_day: number;
+		is_open: boolean; // true = open with custom hours; false = closed all day
+		start_time: string | null; // timestamp from API; we display HH:MM
+		end_time: string | null; // timestamp from API; we display HH:MM
 	};
 
+	// --- Helpers ---
 	function todayISO() {
 		const d = new Date();
 		return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
@@ -24,49 +23,81 @@
 		return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 	}
 	const withSeconds = (t: string | null) => (t ? (t.length === 8 ? t : `${t}:00`) : null);
-	const pad2 = (n: number) => String(n).padStart(2, '0');
-	const mdKey = (m: number, d: number) => m * 100 + d;
-	const monthName = (m: number) =>
-		new Date(`2000-${pad2(m)}-01T00:00:00`).toLocaleString(undefined, { month: 'long' });
-	const fmtMMDD = (m: number, d: number) => `${pad2(m)}-${pad2(d)}`;
 
-	function validateMD(m: number, d: number) {
-		return m >= 1 && m <= 12 && d >= 1 && d <= 31;
+	function toTimestamp(dateISO: string | null, timeHHMM: string | null): string | null {
+		if (!dateISO || !timeHHMM) return null;
+		return `${dateISO} ${withSeconds(timeHHMM)}`; // 'YYYY-MM-DD HH:MM:SS'
 	}
-	function validateTimes(open: boolean, s: string | null, e: string | null) {
+
+	function parseTimePart(ts: string | null): string | null {
+		if (!ts) return null;
+		// Accept 'YYYY-MM-DD HH:MM[:SS]' or 'YYYY-MM-DDTHH:MM[:SS]' or just 'HH:MM[:SS]'
+		const raw = ts.includes(' ') ? ts.split(' ')[1] : ts.includes('T') ? ts.split('T')[1] : ts;
+		return raw.slice(0, 5);
+	}
+
+	function monthKey(isoDate: string) {
+		return isoDate.slice(0, 7); // YYYY-MM
+	}
+	function formatMonthHeader(key: string) {
+		const d = new Date(`${key}-01T00:00:00`);
+		return d.toLocaleString(undefined, { month: 'long', year: 'numeric' });
+	}
+
+	function validateWindow(s: string, e: string | null) {
+		if (e && e < s) {
+			alert('End date must be on/after start date.');
+			return false;
+		}
+		return true;
+	}
+	function validateTimes(
+		open: boolean,
+		s: string | null,
+		e: string | null,
+		sd: string,
+		ed: string | null
+	) {
 		if (!open) return true;
 		if (!s || !e) {
 			alert('Set both start and end times.');
 			return false;
 		}
-		if (s >= e) {
-			alert('Start must be before end.');
+		// If single-day special, enforce start < end; for multi-day, allow any times
+		if ((ed ?? sd) === sd && s >= e) {
+			alert('Start must be before end for single-day entries.');
 			return false;
 		}
 		return true;
 	}
 
+	// --- State ---
 	let loading = $state(false);
 	let errorText = $state<string | null>(null);
-	let holidays = $state<HolidayRow[]>([]);
+	let days = $state<SpecialRow[]>([]);
 	let from = $state(todayISO());
 	let to = $state(addDays(todayISO(), 365));
+
+	// modal state
 	let showAddModal = $state(false);
-	let grouped = $state<Record<number, HolidayRow[]>>({});
+
+	// grouped months (YYYY-MM => SpecialRow[])
+	let grouped = $state<Record<string, SpecialRow[]>>({});
 
 	async function load() {
 		loading = true;
 		errorText = null;
 		try {
 			const qs = new URLSearchParams({ from, to });
-			const r = await fetch(`${API_HOLIDAYS}?${qs.toString()}`);
+			const r = await fetch(`${API_SPECIAL}?${qs.toString()}`);
 			if (!r.ok) throw new Error(await r.text());
-			const data: HolidayRow[] = await r.json();
-			holidays = data.map((h) => ({
-				...h,
-				comment: h.comment ?? null,
-				start_time: h.start_time ? h.start_time.slice(0, 5) : null,
-				end_time: h.end_time ? h.end_time.slice(0, 5) : null
+			const data: SpecialRow[] = await r.json();
+			days = data.map((d) => ({
+				...d,
+				comment: d.comment ?? null,
+				// display-only time parts for the UI
+				start_time: parseTimePart(d.start_time),
+				end_time: parseTimePart(d.end_time)
 			}));
 		} catch (e: any) {
 			errorText = e?.message ?? 'Failed to load';
@@ -78,122 +109,97 @@
 		void load();
 	});
 
+	// re-group whenever days changes
 	$effect(() => {
-		const sorted = [...holidays].sort((a, b) => {
-			const aKey = mdKey(a.start_month, a.start_day);
-			const bKey = mdKey(b.start_month, b.start_day);
-			return aKey - bKey || a.id - b.id;
-		});
-		const g: Record<number, HolidayRow[]> = {};
-		for (const h of sorted) {
-			(g[h.start_month] ??= []).push(h);
+		const sorted = [...days].sort((a, b) =>
+			a.start_date < b.start_date ? -1 : a.start_date > b.start_date ? 1 : a.id - b.id
+		);
+		const g: Record<string, SpecialRow[]> = {};
+		for (const d of sorted) {
+			const key = monthKey(d.start_date);
+			(g[key] ??= []).push(d);
 		}
 		grouped = g;
 	});
 
-	let draft = $state<HolidayRow>({
+	// draft row for modal
+	let draft = $state<SpecialRow>({
 		id: 0,
-		holiday: '',
+		start_date: todayISO(),
+		end_date: null,
+		label: '',
 		comment: null,
 		is_open: false,
 		start_time: null,
-		end_time: null,
-		start_month: new Date().getMonth() + 1,
-		start_day: new Date().getDate(),
-		end_month: new Date().getMonth() + 1,
-		end_day: new Date().getDate()
+		end_time: null
 	});
 
-	function validateRowLike(
-		row: Pick<
-			HolidayRow,
-			| 'holiday'
-			| 'is_open'
-			| 'start_time'
-			| 'end_time'
-			| 'start_month'
-			| 'start_day'
-			| 'end_month'
-			| 'end_day'
-		>
-	) {
-		if (!row.holiday.trim()) {
-			alert('Enter a label');
-			return false;
-		}
-		if (!validateMD(row.start_month, row.start_day)) {
-			alert('Invalid start month/day');
-			return false;
-		}
-		if (!validateMD(row.end_month, row.end_day)) {
-			alert('Invalid end month/day');
-			return false;
-		}
-		if (!validateTimes(row.is_open, row.start_time, row.end_time)) return false;
-		return true;
-	}
-
-	async function addOverride() {
-		if (!draft.end_month || !draft.end_day) {
-			draft.end_month = draft.start_month;
-			draft.end_day = draft.start_day;
-		}
-		if (!validateRowLike(draft)) return;
+	async function addRow() {
+		if (!draft.start_date) return alert('Select start date');
+		if (!draft.label.trim()) return alert('Enter a label');
+		if (!validateWindow(draft.start_date, draft.end_date)) return;
+		if (
+			!validateTimes(
+				draft.is_open,
+				draft.start_time,
+				draft.end_time,
+				draft.start_date,
+				draft.end_date
+			)
+		)
+			return;
 
 		const payload = {
-			holiday: draft.holiday.trim(),
+			start_date: draft.start_date,
+			end_date: draft.end_date,
+			label: draft.label.trim(),
 			comment: draft.comment?.trim() || null,
 			is_open: draft.is_open,
-			start_time: draft.is_open ? withSeconds(draft.start_time) : null,
-			end_time: draft.is_open ? withSeconds(draft.end_time) : null,
-			start_month: draft.start_month,
-			start_day: draft.start_day,
-			end_month: draft.end_month,
-			end_day: draft.end_day
+			start_time: draft.is_open ? toTimestamp(draft.start_date, draft.start_time) : null,
+			end_time: draft.is_open
+				? toTimestamp(draft.end_date ?? draft.start_date, draft.end_time)
+				: null
 		};
-		const r = await fetch(API_HOLIDAYS, {
+
+		const r = await fetch(API_SPECIAL, {
 			method: 'POST',
 			headers: { 'content-type': 'application/json' },
 			body: JSON.stringify(payload)
 		});
 		if (!r.ok) return alert(await r.text());
 
+		// reset & close
 		draft = {
 			id: 0,
-			holiday: '',
+			start_date: todayISO(),
+			end_date: null,
+			label: '',
 			comment: null,
 			is_open: false,
 			start_time: null,
-			end_time: null,
-			start_month: new Date().getMonth() + 1,
-			start_day: new Date().getDate(),
-			end_month: new Date().getMonth() + 1,
-			end_day: new Date().getDate()
+			end_time: null
 		};
 		showAddModal = false;
 		await load();
 	}
 
-	async function saveRow(idx: number, m: number) {
-		const h = grouped[m][idx];
-		if (!h.end_month || !h.end_day) {
-			h.end_month = h.start_month;
-			h.end_day = h.start_day;
-		}
-		if (!validateRowLike(h)) return;
+	async function saveRow(idx: number, mkey: string) {
+		const d = grouped[mkey][idx];
+		if (!d.label.trim()) return alert('Enter a label');
+		if (!validateWindow(d.start_date, d.end_date)) return;
+		if (!validateTimes(d.is_open, d.start_time, d.end_time, d.start_date, d.end_date)) return;
 
 		const payload = {
-			holiday: h.holiday.trim(),
-			comment: h.comment?.trim() || null,
-			is_open: h.is_open,
-			start_time: h.is_open ? withSeconds(h.start_time) : null,
-			end_time: h.is_open ? withSeconds(h.end_time) : null,
-			start_month: h.start_month,
-			start_day: h.start_day,
-			end_month: h.end_month,
-			end_day: h.end_day
+			start_date: d.start_date,
+			end_date: d.end_date,
+			label: d.label.trim(),
+			comment: d.comment?.trim() || null,
+			is_open: d.is_open,
+			start_time: d.is_open ? toTimestamp(d.start_date, d.start_time) : null,
+			end_time: d.is_open ? toTimestamp(d.end_date ?? d.start_date, d.end_time) : null
 		};
-		const r = await fetch(`${API_HOLIDAYS}/${h.id}`, {
+
+		const r = await fetch(`${API_SPECIAL}/${d.id}`, {
 			method: 'PUT',
 			headers: { 'content-type': 'application/json' },
 			body: JSON.stringify(payload)
@@ -202,16 +208,17 @@
 		await load();
 	}
 
-	async function deleteRow(idx: number, m: number) {
-		const h = grouped[m][idx];
-		if (!confirm(`Delete override for ${h.holiday}?`)) return;
-		const r = await fetch(`${API_HOLIDAYS}/${h.id}`, { method: 'DELETE' });
+	async function deleteRow(idx: number, mkey: string) {
+		const d = grouped[mkey][idx];
+		if (!confirm(`Delete special day: ${d.label}?`)) return;
+		const r = await fetch(`${API_SPECIAL}/${d.id}`, { method: 'DELETE' });
 		if (!r.ok) return alert(await r.text());
 		await load();
 	}
 </script>
 
 <section class="mx-auto max-w-6xl px-4 py-8">
+	<!-- Top bar: title, filters, Add button -->
 	<div class="mb-6 flex flex-wrap items-end justify-between gap-3">
 		<div>
 			<h1 class="text-3xl font-bold">
@@ -234,16 +241,16 @@
 							d="M15 19l-7-7 7-7"
 						/>
 					</svg>
-				</a>Holiday hours
+				</a>Special days
 			</h1>
 			<p class="mt-1 text-sm text-gray-600 dark:text-gray-300">
-				Closed days or custom open hours (repeats every year).
+				One-off closures or modified hours (specific dates with year).
 			</p>
 		</div>
 
 		<div class="flex items-center gap-2">
-			<label class="text-sm text-gray-600 dark:text-gray-300"
-				>From
+			<label class="text-sm text-gray-600 dark:text-gray-300">
+				From
 				<input
 					type="date"
 					class="ml-2 rounded border border-gray-300 px-2 py-1 text-sm dark:border-zinc-700 dark:bg-zinc-900 dark:text-gray-100"
@@ -254,8 +261,8 @@
 					}}
 				/>
 			</label>
-			<label class="text-sm text-gray-600 dark:text-gray-300"
-				>To
+			<label class="text-sm text-gray-600 dark:text-gray-300">
+				To
 				<input
 					type="date"
 					class="ml-2 rounded border border-gray-300 px-2 py-1 text-sm dark:border-zinc-700 dark:bg-zinc-900 dark:text-gray-100"
@@ -289,101 +296,65 @@
 			{errorText}
 		</div>
 	{/if}
+
+	<!-- Existing special days (grouped by month) -->
 	<div
 		class="rounded-2xl border border-gray-200 bg-white p-4 shadow dark:border-zinc-700 dark:bg-zinc-900"
 	>
-		<h2 class="mb-3 text-lg font-semibold">Existing overrides</h2>
+		<h2 class="mb-3 text-lg font-semibold">Existing entries</h2>
 
 		{#if loading}
 			<p class="text-gray-600 dark:text-gray-300">Loading…</p>
-		{:else if holidays.length === 0}
-			<p class="text-gray-600 dark:text-gray-300">No overrides.</p>
+		{:else if days.length === 0}
+			<p class="text-gray-600 dark:text-gray-300">No entries in range.</p>
 		{:else}
 			<div class="space-y-8">
-				{#each Object.keys(grouped)
-					.map(Number)
-					.sort((a, b) => a - b) as m}
+				{#each Object.keys(grouped) as mkey}
 					<div>
 						<h3 class="mb-3 text-base font-semibold text-gray-900 dark:text-gray-100">
-							{monthName(m)}
+							{formatMonthHeader(mkey)}
 						</h3>
 						<div class="space-y-3">
-							{#each grouped[m] as h, idx}
+							{#each grouped[mkey] as d, idx}
 								<div class="rounded-xl border border-gray-200 p-3 dark:border-zinc-700">
 									<label class="block text-sm">
 										<span class="sr-only">Label</span>
 										<input
 											type="text"
 											class="mb-3 w-full rounded-lg border border-gray-300 px-3 py-2 text-lg font-semibold dark:border-zinc-700 dark:bg-zinc-900 dark:text-gray-100"
-											value={h.holiday}
+											value={d.label}
 											oninput={(e) => {
-												h.holiday = (e.currentTarget as HTMLInputElement).value;
+												d.label = (e.currentTarget as HTMLInputElement).value;
 											}}
-											placeholder="Holiday name"
+											placeholder="Label"
 										/>
 									</label>
 
 									<div class="grid items-start gap-3 md:grid-cols-[1fr_auto]">
 										<div class="grid gap-3 sm:grid-cols-2">
-											<div class="grid grid-cols-2 gap-3">
-												<label class="text-sm"
-													>Start month
-													<select
-														class="mt-1 w-full rounded border border-gray-300 px-2 py-1 dark:border-zinc-700 dark:bg-zinc-900 dark:text-gray-100"
-														value={h.start_month}
-														oninput={(e) => {
-															h.start_month = Number((e.currentTarget as HTMLSelectElement).value);
-														}}
-													>
-														{#each Array.from({ length: 12 }, (_, i) => i + 1) as mOpt}
-															<option value={mOpt}>{monthName(mOpt)}</option>
-														{/each}
-													</select>
-												</label>
-												<label class="text-sm"
-													>Start day
-													<input
-														type="number"
-														min="1"
-														max="31"
-														class="mt-1 w-full rounded border border-gray-300 px-2 py-1 dark:border-zinc-700 dark:bg-zinc-900 dark:text-gray-100"
-														value={h.start_day}
-														oninput={(e) => {
-															h.start_day = Number((e.currentTarget as HTMLInputElement).value);
-														}}
-													/>
-												</label>
-											</div>
-
-											<div class="grid grid-cols-2 gap-3">
-												<label class="text-sm"
-													>End month
-													<select
-														class="mt-1 w-full rounded border border-gray-300 px-2 py-1 dark:border-zinc-700 dark:bg-zinc-900 dark:text-gray-100"
-														value={h.end_month}
-														oninput={(e) => {
-															h.end_month = Number((e.currentTarget as HTMLSelectElement).value);
-														}}
-													>
-														{#each Array.from({ length: 12 }, (_, i) => i + 1) as mOpt}
-															<option value={mOpt}>{monthName(mOpt)}</option>
-														{/each}
-													</select>
-												</label>
-												<label class="text-sm"
-													>End day
-													<input
-														type="number"
-														min="1"
-														max="31"
-														class="mt-1 w-full rounded border border-gray-300 px-2 py-1 dark:border-zinc-700 dark:bg-zinc-900 dark:text-gray-100"
-														value={h.end_day}
-														oninput={(e) => {
-															h.end_day = Number((e.currentTarget as HTMLInputElement).value);
-														}}
-													/>
-												</label>
-											</div>
+											<label class="text-sm"
+												>Start date
+												<input
+													type="date"
+													class="mt-1 w-full rounded border border-gray-300 px-2 py-1 dark:border-zinc-700 dark:bg-zinc-900 dark:text-gray-100"
+													value={d.start_date}
+													oninput={(e) => {
+														d.start_date = (e.currentTarget as HTMLInputElement).value;
+													}}
+												/>
+											</label>
+											<label class="text-sm"
+												>End date (optional)
+												<input
+													type="date"
+													class="mt-1 w-full rounded border border-gray-300 px-2 py-1 dark:border-zinc-700 dark:bg-zinc-900 dark:text-gray-100"
+													value={d.end_date ?? ''}
+													oninput={(e) => {
+														const v = (e.currentTarget as HTMLInputElement).value;
+														d.end_date = v || null;
+													}}
+												/>
+											</label>
 
 											<label class="text-sm"
 												>Comment
@@ -391,40 +362,40 @@
 													rows="2"
 													class="mt-1 w-full rounded border border-gray-300 px-2 py-1 dark:border-zinc-700 dark:bg-zinc-900 dark:text-gray-100"
 													oninput={(e) => {
-														h.comment = (e.currentTarget as HTMLTextAreaElement).value || null;
-													}}>{h.comment ?? ''}</textarea
+														d.comment = (e.currentTarget as HTMLTextAreaElement).value || null;
+													}}>{d.comment ?? ''}</textarea
 												>
 											</label>
 
 											<label class="col-span-2 inline-flex items-center gap-2 text-sm">
 												<input
 													type="checkbox"
-													checked={h.is_open}
+													checked={d.is_open}
 													oninput={(e) => {
 														const c = (e.currentTarget as HTMLInputElement).checked;
-														h.is_open = c;
+														d.is_open = c;
 														if (c) {
-															h.start_time ??= '09:00';
-															h.end_time ??= '17:00';
+															d.start_time ??= '09:00';
+															d.end_time ??= '17:00';
 														} else {
-															h.start_time = null;
-															h.end_time = null;
+															d.start_time = null;
+															d.end_time = null;
 														}
 													}}
 												/>
-												<span>Open these day(s) (custom hours)</span>
+												<span>Open during these times</span>
 											</label>
 
-											{#if h.is_open}
+											{#if d.is_open}
 												<div class="col-span-2 grid grid-cols-2 gap-3">
 													<label class="text-sm"
 														>Start time
 														<input
 															type="time"
 															class="mt-1 w-full rounded border border-gray-300 px-2 py-1 dark:border-zinc-700 dark:bg-zinc-900 dark:text-gray-100"
-															value={h.start_time ?? ''}
+															value={d.start_time ?? ''}
 															oninput={(e) => {
-																h.start_time = (e.currentTarget as HTMLInputElement).value;
+																d.start_time = (e.currentTarget as HTMLInputElement).value;
 															}}
 														/>
 													</label>
@@ -433,9 +404,9 @@
 														<input
 															type="time"
 															class="mt-1 w-full rounded border border-gray-300 px-2 py-1 dark:border-zinc-700 dark:bg-zinc-900 dark:text-gray-100"
-															value={h.end_time ?? ''}
+															value={d.end_time ?? ''}
 															oninput={(e) => {
-																h.end_time = (e.currentTarget as HTMLInputElement).value;
+																d.end_time = (e.currentTarget as HTMLInputElement).value;
 															}}
 														/>
 													</label>
@@ -446,13 +417,13 @@
 										<div class="flex justify-end gap-2">
 											<button
 												class="rounded bg-zinc-900 px-3 py-1.5 text-white hover:opacity-90 dark:bg-zinc-100 dark:text-black"
-												onclick={() => saveRow(idx, m)}
+												onclick={() => saveRow(idx, mkey)}
 											>
 												Save
 											</button>
 											<button
 												class="rounded border px-3 py-1.5 hover:bg-gray-50 dark:border-zinc-700 dark:hover:bg-zinc-800"
-												onclick={() => deleteRow(idx, m)}
+												onclick={() => deleteRow(idx, mkey)}
 											>
 												Delete
 											</button>
@@ -460,10 +431,10 @@
 									</div>
 
 									<p class="mt-2 text-xs text-gray-600 dark:text-gray-400">
-										Range: {fmtMMDD(h.start_month, h.start_day)} – {fmtMMDD(h.end_month, h.end_day)}
+										Range: {d.start_date} – {d.end_date ?? d.start_date}
 										<span class="ml-2">
-											{h.is_open
-												? `(Open ${h.start_time ?? '??'}–${h.end_time ?? '??'})`
+											{d.is_open
+												? `(Open ${d.start_time ?? '??'}–${d.end_time ?? '??'})`
 												: '(Closed all day)'}
 										</span>
 									</p>
@@ -476,12 +447,14 @@
 		{/if}
 	</div>
 </section>
+
+<!-- Add Special Day MODAL -->
 {#if showAddModal}
 	<div
 		class="fixed inset-0 z-50 flex items-center justify-center p-4"
 		role="dialog"
 		aria-modal="true"
-		aria-label="Add holiday override"
+		aria-label="Add special day"
 		onkeydown={(e) => {
 			if (e.key === 'Escape') {
 				e.stopPropagation();
@@ -490,6 +463,7 @@
 		}}
 		tabindex="0"
 	>
+		<!-- backdrop -->
 		<button
 			type="button"
 			class="absolute inset-0 bg-black/40"
@@ -503,11 +477,12 @@
 			}}
 		></button>
 
+		<!-- panel -->
 		<div
 			class="relative z-10 w-full max-w-lg rounded-2xl border border-gray-200 bg-white p-4 shadow-lg dark:border-zinc-700 dark:bg-zinc-900"
 		>
 			<div class="mb-3 flex items-center justify-between">
-				<h2 class="text-lg font-semibold">Add override</h2>
+				<h2 class="text-lg font-semibold">Add special day</h2>
 				<button
 					class="rounded border px-2 py-1 text-sm hover:bg-gray-50 dark:border-zinc-700 dark:hover:bg-zinc-800"
 					onclick={() => (showAddModal = false)}
@@ -522,72 +497,38 @@
 					<input
 						type="text"
 						class="mt-1 w-full rounded border border-gray-300 px-3 py-2 text-base font-semibold dark:border-zinc-700 dark:bg-zinc-900 dark:text-gray-100"
-						value={draft.holiday}
+						value={draft.label}
 						oninput={(e) => {
-							draft.holiday = (e.currentTarget as HTMLInputElement).value;
+							draft.label = (e.currentTarget as HTMLInputElement).value;
 						}}
-						placeholder="Holiday name"
+						placeholder="Label"
 					/>
 				</label>
-				<div class="grid grid-cols-2 gap-3">
-					<label class="text-sm"
-						>Start month
-						<select
-							class="mt-1 w-full rounded border border-gray-300 px-2 py-1 dark:border-zinc-700 dark:bg-zinc-900 dark:text-gray-100"
-							value={draft.start_month}
-							oninput={(e) => {
-								draft.start_month = Number((e.currentTarget as HTMLSelectElement).value);
-							}}
-						>
-							{#each Array.from({ length: 12 }, (_, i) => i + 1) as mOpt}
-								<option value={mOpt}>{monthName(mOpt)}</option>
-							{/each}
-						</select>
-					</label>
-					<label class="text-sm"
-						>Start day
-						<input
-							type="number"
-							min="1"
-							max="31"
-							class="mt-1 w-full rounded border border-gray-300 px-2 py-1 dark:border-zinc-700 dark:bg-zinc-900 dark:text-gray-100"
-							value={draft.start_day}
-							oninput={(e) => {
-								draft.start_day = Number((e.currentTarget as HTMLInputElement).value);
-							}}
-						/>
-					</label>
-				</div>
 
-				<div class="grid grid-cols-2 gap-3">
-					<label class="text-sm"
-						>End month (optional)
-						<select
-							class="mt-1 w-full rounded border border-gray-300 px-2 py-1 dark:border-zinc-700 dark:bg-zinc-900 dark:text-gray-100"
-							value={draft.end_month}
-							oninput={(e) => {
-								draft.end_month = Number((e.currentTarget as HTMLSelectElement).value);
-							}}
-						>
-							{#each Array.from({ length: 12 }, (_, i) => i + 1) as mOpt}
-								<option value={mOpt}>{monthName(mOpt)}</option>
-							{/each}
-						</select>
-					</label>
-					<label class="text-sm"
-						>End day (optional)
-						<input
-							type="number"
-							min="1"
-							max="31"
-							class="mt-1 w-full rounded border border-gray-300 px-2 py-1 dark:border-zinc-700 dark:bg-zinc-900 dark:text-gray-100"
-							value={draft.end_day}
-							oninput={(e) => {
-								draft.end_day = Number((e.currentTarget as HTMLInputElement).value);
-							}}
-						/>
-					</label>
-				</div>
+				<label class="text-sm"
+					>Start date
+					<input
+						type="date"
+						class="mt-1 w-full rounded border border-gray-300 px-2 py-1 dark:border-zinc-700 dark:bg-zinc-900 dark:text-gray-100"
+						value={draft.start_date}
+						oninput={(e) => {
+							draft.start_date = (e.currentTarget as HTMLInputElement).value;
+						}}
+					/>
+				</label>
+
+				<label class="text-sm"
+					>End date (optional)
+					<input
+						type="date"
+						class="mt-1 w-full rounded border border-gray-300 px-2 py-1 dark:border-zinc-700 dark:bg-zinc-900 dark:text-gray-100"
+						value={draft.end_date ?? ''}
+						oninput={(e) => {
+							const v = (e.currentTarget as HTMLInputElement).value;
+							draft.end_date = v || null;
+						}}
+					/>
+				</label>
 
 				<label class="text-sm"
 					>Comment (optional)
@@ -616,7 +557,7 @@
 							}
 						}}
 					/>
-					<span>Open these day(s) (custom hours)</span>
+					<span>Open during these times</span>
 				</label>
 
 				{#if draft.is_open}
@@ -655,9 +596,9 @@
 					</button>
 					<button
 						class="rounded bg-zinc-900 px-3 py-2 font-semibold text-white hover:opacity-90 dark:bg-zinc-100 dark:text-black"
-						onclick={addOverride}
+						onclick={addRow}
 					>
-						Add override
+						Add special day
 					</button>
 				</div>
 			</div>

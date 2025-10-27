@@ -6,21 +6,26 @@ export const GET = async ({ url }) => {
 	const date = url.searchParams.get('date') ?? '';
 	if (!isISODate(date)) throw error(400, 'invalid date format');
 
+	const md = Number(date.slice(5, 7) + date.slice(8, 10));
+
 	const sql = `
-    SELECT holiday, \`comment\`,
-           (is_open + 0) AS is_open,
-           DATE_FORMAT(start_time, '%H:%i') AS start_time,
-           DATE_FORMAT(end_time,   '%H:%i') AS end_time
+    SELECT
+      holiday,
+      \`comment\`,
+      (is_open + 0) AS is_open,
+      DATE_FORMAT(start_time, '%H:%i') AS start_time,
+      DATE_FORMAT(end_time,   '%H:%i') AS end_time
     FROM holiday_hours
-    WHERE start_date <= ?
-      AND COALESCE(end_date, start_date) >= ?
-    ORDER BY
-      (COALESCE(end_date, start_date) = start_date) DESC,
-      DATEDIFF(COALESCE(end_date, start_date), start_date) ASC,
-      id ASC
+    WHERE
+      (start_md <= end_md AND ? BETWEEN start_md AND end_md)
+      OR
+      (start_md >  end_md AND (? >= start_md OR ? <= end_md))
+    -- prefer single-day rows if overlaps exist, then smallest id
+    ORDER BY (start_md = end_md) DESC, id ASC
     LIMIT 1
   `;
-	const rows = await q<any[]>(sql, [date, date]);
+
+	const rows = await q<any[]>(sql, [md, md, md]);
 	if (!rows?.length) return json({ exists: false });
 
 	const r = rows[0];

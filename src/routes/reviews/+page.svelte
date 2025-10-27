@@ -8,8 +8,6 @@
 	let page = $state(1);
 	let total = $state<number | null>(null);
 	let loading = $state(false);
-
-	// Dialog state
 	let errorOpen = $state(false);
 	let errorText = $state<string | null>(null);
 	let successOpen = $state(false);

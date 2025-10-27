@@ -1,5 +1,4 @@
 <script lang="ts">
-	// Nothing fancy here—SSR guard stays in +layout.server.ts for /manage (you already have it)
 </script>
 
 <section class="mx-auto max-w-6xl px-4 py-8">
@@ -29,11 +28,21 @@
 			<div class="mt-2 text-lg font-semibold">Holiday hours</div>
 			<p
 				class="mt-1 max-w-[16ch] text-sm text-gray-600 group-hover:text-gray-800 dark:text-gray-300 dark:group-hover:text-gray-100"
+			>Add or modify existing holiday hours</p>
+		</a>
+		<a
+			href="/manage/special-days"
+			class="group flex aspect-square flex-col items-center justify-center rounded-2xl border border-gray-200 bg-white text-center shadow transition hover:shadow-md dark:border-zinc-700 dark:bg-zinc-900"
+			aria-label="All appointments"
+		>
+			<div class="text-3xl">⭐</div>
+			<div class="mt-2 text-lg font-semibold">Special Days</div>
+			<p
+				class="mt-1 max-w-[16ch] text-sm text-gray-600 group-hover:text-gray-800 dark:text-gray-300 dark:group-hover:text-gray-100"
 			>
-				One-off closures & overrides
+				Close or set special hours for specific dates
 			</p>
 		</a>
-
 		<a
 			href="/manage/all-appointments"
 			class="group flex aspect-square flex-col items-center justify-center rounded-2xl border border-gray-200 bg-white text-center shadow transition hover:shadow-md dark:border-zinc-700 dark:bg-zinc-900"
