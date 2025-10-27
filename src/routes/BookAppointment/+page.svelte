@@ -129,15 +129,14 @@
 		isOpenOverride: boolean | null;
 	} | null>(null);
 
-	// For calendar shading:
-	// monthAvail[isoDate] = true  -> has at least one slot
-	// monthAvail[isoDate] = false -> we believe no slots
-	// monthAvail[isoDate] = undefined -> unknown / not prefetched / request failed
+	// monthAvail[iso] = true | false | undefined
 	let monthAvail = $state<Record<string, boolean | undefined>>({});
 
-	// Cache per month so we only fetch each calendar month once
-	// monthCache["2025-11"] = { "2025-11-01": true, "2025-11-02": false, ... }
+	// Cache: per-month map of availability, so we don't refetch months repeatedly
 	let monthCache = $state<Record<string, Record<string, boolean | undefined>>>({});
+
+	// Track which monthKeys are already loaded (prevents repeated fetch loops)
+	let loadedMonths = $state<Record<string, boolean>>({});
 
 	let availAbort: AbortController | null = null;
 
@@ -145,7 +144,7 @@
 		return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
 	}
 
-	// Build the calendar grid
+	// === Calendar grid builder ===
 	function buildWeeks(
 		month: Date,
 		selectedISO: string,
@@ -171,11 +170,9 @@
 			const isTodayISO = iso === todayLocalISO();
 			const hasSlots = avail[iso]; // true | false | undefined
 
-			// Disable:
-			// - any past date
-			// - any future date we *know* has no slots
-			// BUT: allow "today" even if hasSlots === false,
-			// because prefetch can be stale. We'll re-check on click.
+			// Future date with known no slots? disable.
+			// Past date? disable.
+			// Today? always allow (even if we *think* no slots) so user can force-check.
 			const disabled = past || (!isTodayISO && hasSlots === false);
 
 			cells.push({
@@ -226,12 +223,16 @@
 			const qs2 = new URLSearchParams({ date: dateISO, slot_minutes: String(slotMinutes) });
 			res = await fetch(`/api/availability?${qs2.toString()}`, { signal });
 			if (!res.ok) {
-				// 3) POST body with both keys
+				// 3) POST body fallback
 				const resPost = await fetch(`/api/availability`, {
 					method: 'POST',
 					headers: { 'Content-Type': 'application/json' },
 					signal,
-					body: JSON.stringify({ date: dateISO, slotMinutes, slot_minutes: slotMinutes })
+					body: JSON.stringify({
+						date: dateISO,
+						slotMinutes,
+						slot_minutes: slotMinutes
+					})
 				});
 				if (!resPost.ok) throw new Error(`Availability HTTP ${resPost.status}`);
 				return normalizeAvailability(await resPost.json());
@@ -240,17 +241,20 @@
 		return normalizeAvailability(await res.json());
 	}
 
-	// NEW: preloadMonthAvailability with month-level cache
-	async function preloadMonthAvailability(month: Date) {
-		const key = monthKey(month);
-
-		// If we've already cached this entire month, just apply it and stop.
-		if (monthCache[key]) {
-			monthAvail = { ...monthAvail, ...monthCache[key] };
+	// Load availability for an entire visible month (only once per monthKey)
+	async function loadMonth(month: Date, key: string) {
+		// if already loaded, just merge cache and quit
+		if (loadedMonths[key]) {
+			// merge cached month data into monthAvail so calendar renders
+			if (monthCache[key]) {
+				monthAvail = { ...monthAvail, ...monthCache[key] };
+			}
 			return;
 		}
 
-		// Kill any in-flight month prefetch before starting a new one
+		// mark as loading now so we don't race multiple times
+		loadedMonths = { ...loadedMonths, [key]: true };
+
 		availAbort?.abort();
 		const ac = new AbortController();
 		availAbort = ac;
@@ -264,7 +268,7 @@
 		for (let day = 1; day <= daysInMonth; day++) {
 			const iso = toISODate(new Date(year, monthIndex, day));
 
-			// mark past days as unavailable so they render disabled
+			// Past dates are always unavailable
 			if (isPastDateISO(iso)) {
 				fetchedForMonth[iso] = false;
 				continue;
@@ -274,28 +278,36 @@
 				const data = await fetchAvailability(iso, DEFAULT_SLOT_MINUTES, ac.signal);
 				fetchedForMonth[iso] = (data.times?.length ?? 0) > 0;
 			} catch (err) {
-				// If we got aborted because user navigated months again, bail out
-				if (ac.signal.aborted) return;
-
-				// Network or server error: leave undefined instead of false
-				// so we don't permanently "gray out" a maybe-valid day.
+				if (ac.signal.aborted) {
+					// user flipped months quickly, stop early
+					return;
+				}
+				// transient error? leave undefined so day isn't hard-disabled forever
 				fetchedForMonth[iso] = undefined;
 			}
 		}
 
-		// Cache the result for this month
-		monthCache[key] = fetchedForMonth;
+		// save to monthCache
+		monthCache = {
+			...monthCache,
+			[key]: fetchedForMonth
+		};
 
-		// Merge into global availability map used for rendering
+		// merge into master availability
 		monthAvail = { ...monthAvail, ...fetchedForMonth };
 	}
 
-	// Preload availability whenever visible month changes
+	// EFFECT: whenever viewMonth changes, make sure that month is loaded.
+	// This effect depends on viewMonth and loadedMonths.
+	// After loadMonth runs once for that key, loadedMonths[key] = true,
+	// so even if the effect re-runs from other state updates, it will no-op.
 	$effect(() => {
-		void preloadMonthAvailability(viewMonth);
+		const vm = viewMonth;
+		const key = monthKey(vm);
+		void loadMonth(vm, key);
 	});
 
-	// When user picks a date, we still fetch that date's live slots for sidebar
+	// EFFECT: fetch times for the selected date when we enter "time" step
 	$effect(() => {
 		if (!formData.date || step !== 'time') return;
 
@@ -332,11 +344,8 @@
 		const isTodayISO = iso === todayLocalISO();
 		const knownNoSlots = monthAvail[iso] === false;
 
-		// Block:
-		// - past dates
-		// - future dates we *know* are empty
-		// Allow:
-		// - today even if monthAvail says false (we'll re-check live)
+		// Block past or known-empty future days.
+		// Allow today even if we think it's empty (we'll live-check).
 		if (isPastDateISO(iso) || (!isTodayISO && knownNoSlots)) return;
 
 		formData = { ...formData, date: iso, time: '' };
@@ -377,7 +386,6 @@
 		}
 
 		try {
-			// NOTE: make sure this matches your deployed route casing
 			const response = await fetch('/api/BookAppointment', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
@@ -386,6 +394,7 @@
 
 			if (response.ok) {
 				alert(`Appointment scheduled on ${formData.date} at ${formData.time}`);
+
 				formData = {
 					name: '',
 					phoneNumber: '',
@@ -400,9 +409,10 @@
 				holidayInfo = null;
 				step = 'date';
 			} else {
-				const payload = await response
-					.json()
-					.catch(async () => ({ message: await response.text().catch(() => 'Unknown error') }));
+				const payload = await response.json().catch(async () => ({
+					message: await response.text().catch(() => 'Unknown error')
+				}));
+
 				if (response.status === 409) {
 					alert(payload?.message || 'Time conflict with another appointment');
 				} else if (response.status === 400) {
@@ -468,7 +478,7 @@
 	</div>
 
 	{#if step === 'date'}
-		<!-- Single-column calendar on first step -->
+		<!-- Single-column calendar -->
 		<section
 			class="mx-auto max-w-xl rounded-2xl border border-gray-200 bg-white p-4 shadow dark:border-zinc-700 dark:bg-zinc-900"
 		>
@@ -528,9 +538,8 @@
 			</div>
 		</section>
 	{:else}
-		<!-- Two-column layout for time + details -->
+		<!-- Two-column layout (calendar + time/details) -->
 		<div class="grid items-start gap-6 md:grid-cols-2">
-			<!-- LEFT: Calendar -->
 			<section
 				class="rounded-2xl border border-gray-200 bg-white p-4 shadow dark:border-zinc-700 dark:bg-zinc-900"
 			>
@@ -591,7 +600,6 @@
 			</section>
 
 			{#if step === 'time'}
-				<!-- RIGHT: Time picker -->
 				<section
 					class="rounded-2xl border border-gray-200 bg-white p-4 shadow dark:border-zinc-700 dark:bg-zinc-900"
 				>
@@ -669,7 +677,6 @@
 			{/if}
 
 			{#if step === 'details'}
-				<!-- RIGHT: Details form -->
 				<section>
 					<div
 						class="mb-4 rounded-2xl border border-gray-200 bg-white p-3 shadow dark:border-zinc-700 dark:bg-zinc-900"
