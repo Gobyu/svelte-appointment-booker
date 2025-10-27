@@ -15,7 +15,6 @@
 		holidayComment?: string | null;
 		isOpenOverride?: boolean | null;
 
-		// Alt shapes some backends use
 		holiday_name?: string | null;
 		comment?: string | null;
 		is_open?: boolean | null;
@@ -47,6 +46,7 @@
 		const d = onlyDigits(raw);
 		return d.length === 10 || (d.length === 11 && d.startsWith('1'));
 	};
+
 	const formatPrettyNANP = (rawOrE164: string) => {
 		const digits = onlyDigits(rawOrE164).replace(/^1(?=\d{10}$)/, '');
 		if (digits.length !== 10) return rawOrE164;
@@ -63,6 +63,7 @@
 		const day = String(d.getDate()).padStart(2, '0');
 		return `${year}-${month}-${day}`;
 	}
+
 	function startOfMonth(d: Date) {
 		return new Date(d.getFullYear(), d.getMonth(), 1);
 	}
@@ -128,11 +129,23 @@
 		isOpenOverride: boolean | null;
 	} | null>(null);
 
-	// ISO -> true (has slots) / false (no slots) / undefined (not checked yet)
+	// For calendar shading:
+	// monthAvail[isoDate] = true  -> has at least one slot
+	// monthAvail[isoDate] = false -> we believe no slots
+	// monthAvail[isoDate] = undefined -> unknown / not prefetched / request failed
 	let monthAvail = $state<Record<string, boolean | undefined>>({});
+
+	// Cache per month so we only fetch each calendar month once
+	// monthCache["2025-11"] = { "2025-11-01": true, "2025-11-02": false, ... }
+	let monthCache = $state<Record<string, Record<string, boolean | undefined>>>({});
+
 	let availAbort: AbortController | null = null;
 
-	// Build the calendar grid (no functions passed into $derived!)
+	function monthKey(d: Date) {
+		return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+	}
+
+	// Build the calendar grid
 	function buildWeeks(
 		month: Date,
 		selectedISO: string,
@@ -150,20 +163,26 @@
 			cells.push({ date: null, iso: null, disabled: true, isToday: false, isSelected: false });
 		}
 
-		// month days
 		for (let day = 1; day <= daysInMonth; day++) {
 			const cellDate = new Date(first.getFullYear(), first.getMonth(), day);
 			const iso = toISODate(cellDate);
 
 			const past = isPastDateISO(iso);
+			const isTodayISO = iso === todayLocalISO();
 			const hasSlots = avail[iso]; // true | false | undefined
-			const disabled = past || hasSlots === false;
+
+			// Disable:
+			// - any past date
+			// - any future date we *know* has no slots
+			// BUT: allow "today" even if hasSlots === false,
+			// because prefetch can be stale. We'll re-check on click.
+			const disabled = past || (!isTodayISO && hasSlots === false);
 
 			cells.push({
 				date: cellDate,
 				iso,
 				disabled,
-				isToday: iso === todayLocalISO(),
+				isToday: isTodayISO,
 				isSelected: selectedISO ? iso === selectedISO : false
 			});
 		}
@@ -173,7 +192,6 @@
 			cells.push({ date: null, iso: null, disabled: true, isToday: false, isSelected: false });
 		}
 
-		// split into weeks
 		const out: DayCell[][] = [];
 		for (let i = 0; i < cells.length; i += 7) out.push(cells.slice(i, i + 7));
 		return out;
@@ -181,44 +199,7 @@
 
 	const weeks = $derived(buildWeeks(viewMonth, formData.date, monthAvail));
 
-	async function preloadMonthAvailability(month: Date) {
-		// cancel previous month load
-		availAbort?.abort();
-		const ac = new AbortController();
-		availAbort = ac;
-
-		const year = month.getFullYear();
-		const monthIndex = month.getMonth();
-		const daysInMonth = endOfMonth(month).getDate();
-
-		const next: Record<string, boolean | undefined> = { ...monthAvail };
-
-		for (let day = 1; day <= daysInMonth; day++) {
-			const iso = toISODate(new Date(year, monthIndex, day));
-
-			if (isPastDateISO(iso)) {
-				next[iso] = false;
-				continue;
-			}
-
-			try {
-				const data = await fetchAvailability(iso, DEFAULT_SLOT_MINUTES, ac.signal);
-				next[iso] = (data.times?.length ?? 0) > 0;
-			} catch {
-				if (ac.signal.aborted) return;
-				next[iso] = false;
-			}
-		}
-
-		monthAvail = next;
-	}
-
-	// Preload availability whenever the visible month changes (works for all steps)
-	$effect(() => {
-		void preloadMonthAvailability(viewMonth);
-	});
-
-	// ===== Availability fetching (resilient to different backend shapes) =====
+	// ===== Availability fetching =====
 	function normalizeAvailability(data: AvailabilityResponse) {
 		const holidayLabel =
 			data.holidayLabel ??
@@ -259,7 +240,62 @@
 		return normalizeAvailability(await res.json());
 	}
 
-	// Fetch times when a date is chosen and step === 'time'
+	// NEW: preloadMonthAvailability with month-level cache
+	async function preloadMonthAvailability(month: Date) {
+		const key = monthKey(month);
+
+		// If we've already cached this entire month, just apply it and stop.
+		if (monthCache[key]) {
+			monthAvail = { ...monthAvail, ...monthCache[key] };
+			return;
+		}
+
+		// Kill any in-flight month prefetch before starting a new one
+		availAbort?.abort();
+		const ac = new AbortController();
+		availAbort = ac;
+
+		const year = month.getFullYear();
+		const monthIndex = month.getMonth();
+		const daysInMonth = endOfMonth(month).getDate();
+
+		const fetchedForMonth: Record<string, boolean | undefined> = {};
+
+		for (let day = 1; day <= daysInMonth; day++) {
+			const iso = toISODate(new Date(year, monthIndex, day));
+
+			// mark past days as unavailable so they render disabled
+			if (isPastDateISO(iso)) {
+				fetchedForMonth[iso] = false;
+				continue;
+			}
+
+			try {
+				const data = await fetchAvailability(iso, DEFAULT_SLOT_MINUTES, ac.signal);
+				fetchedForMonth[iso] = (data.times?.length ?? 0) > 0;
+			} catch (err) {
+				// If we got aborted because user navigated months again, bail out
+				if (ac.signal.aborted) return;
+
+				// Network or server error: leave undefined instead of false
+				// so we don't permanently "gray out" a maybe-valid day.
+				fetchedForMonth[iso] = undefined;
+			}
+		}
+
+		// Cache the result for this month
+		monthCache[key] = fetchedForMonth;
+
+		// Merge into global availability map used for rendering
+		monthAvail = { ...monthAvail, ...fetchedForMonth };
+	}
+
+	// Preload availability whenever visible month changes
+	$effect(() => {
+		void preloadMonthAvailability(viewMonth);
+	});
+
+	// When user picks a date, we still fetch that date's live slots for sidebar
 	$effect(() => {
 		if (!formData.date || step !== 'time') return;
 
@@ -292,8 +328,16 @@
 	// ===== Handlers =====
 	function handlePickDate(iso: string | null) {
 		if (!iso) return;
-		// block past or known-unavailable dates
-		if (isPastDateISO(iso) || monthAvail[iso] === false) return;
+
+		const isTodayISO = iso === todayLocalISO();
+		const knownNoSlots = monthAvail[iso] === false;
+
+		// Block:
+		// - past dates
+		// - future dates we *know* are empty
+		// Allow:
+		// - today even if monthAvail says false (we'll re-check live)
+		if (isPastDateISO(iso) || (!isTodayISO && knownNoSlots)) return;
 
 		formData = { ...formData, date: iso, time: '' };
 		availableTimes = [];
@@ -333,6 +377,7 @@
 		}
 
 		try {
+			// NOTE: make sure this matches your deployed route casing
 			const response = await fetch('/api/BookAppointment', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
@@ -382,7 +427,6 @@
 			{@const active = step === s}
 			{@const completed = stepIdx(step) > i}
 			{@const clickable = completed}
-			<!-- only go BACK -->
 
 			<div class="flex items-center">
 				{#if clickable}
