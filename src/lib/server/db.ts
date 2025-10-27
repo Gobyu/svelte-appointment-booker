@@ -1,41 +1,41 @@
 import mysql from 'mysql2/promise';
-import fs from 'node:fs';
-import path from 'node:path';
-import {
-	DB_HOST,
-	DB_PORT,
-	DB_USER,
-	DB_PASS,
-	DB_NAME,
-	DB_SSL,
-	DB_CA_CERT
-} from '$env/static/private';
+import { env } from '$env/dynamic/private';
 
-function readCaFromEnvOrFile(): string | undefined {
-	const v = DB_CA_CERT;
-	if (!v) return undefined;
 
-	if (v.includes('BEGIN CERTIFICATE')) return v.replace(/\\n/g, '\n'); // inline PEM
-	const abs = path.resolve(process.cwd(), v); // file path
-	if (fs.existsSync(abs)) return fs.readFileSync(abs, 'utf8');
+function getCaFromEnv(): string | undefined {
+	const b64 = env.DB_CA_B64;
+	if (b64 && b64.trim().length) {
+		try {
+			return Buffer.from(b64.trim(), 'base64').toString('utf8');
+		} catch {
+		}
+	}
+	const pem = env.DB_CA_CERT;
+	if (pem && pem.includes('BEGIN CERTIFICATE')) {
+		return pem.replace(/\\n/g, '\n');
+	}
 	return undefined;
 }
 
-const useSSL = String(DB_SSL ?? '').toLowerCase() === 'true';
-const ca = useSSL ? readCaFromEnvOrFile() : undefined;
+const useSSL = String(env.DB_SSL ?? 'true').toLowerCase() !== 'false';
+const ca = useSSL ? getCaFromEnv() : undefined;
 
 export const pool = mysql.createPool({
-	host: DB_HOST!,
-	port: Number(DB_PORT ?? 3306),
-	user: DB_USER!,
-	password: DB_PASS!,
-	database: DB_NAME!,
+	host: env.DB_HOST!,
+	port: Number(env.DB_PORT ?? 3306),
+	user: env.DB_USER!,
+	password: env.DB_PASS!,
+	database: env.DB_NAME!,
 	waitForConnections: true,
 	connectionLimit: 10,
 	enableKeepAlive: true,
 	keepAliveInitialDelay: 0,
 	namedPlaceholders: false,
-	ssl: useSSL ? { ca, minVersion: 'TLSv1.2' as const } : undefined
+	ssl: useSSL
+		? (ca
+				? { ca, minVersion: 'TLSv1.2', rejectUnauthorized: true }
+				: { minVersion: 'TLSv1.2', rejectUnauthorized: true })
+		: undefined
 });
 
 export async function q<T = any>(sql: string, params: any[] = []) {
