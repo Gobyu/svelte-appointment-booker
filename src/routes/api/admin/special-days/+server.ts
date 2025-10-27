@@ -1,21 +1,18 @@
-// src/routes/api/admin/special-days/+server.ts
 import { json, error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { q } from '$lib/server/db';
 import { requireAdmin } from '$lib/server/auth';
 import { isISODate } from '$lib/server/utils';
 
-// Minimal timestamp validator/normalizer for 'YYYY-MM-DD HH:MM[:SS]' or 'YYYY-MM-DDTHH:MM[:SS]'
 const isISODateTime = (s: unknown) =>
 	typeof s === 'string' && /^\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}(:\d{2})?$/.test(s);
 
 const normalizeTimestamp = (s: string | null | undefined): string | null => {
 	if (!s) return null;
 	const t = s.replace('T', ' ');
-	return t.length === 16 ? `${t}:00` : t; // add :SS if missing
+	return t.length === 16 ? `${t}:00` : t;
 };
 
-/** GET: list special days within a real date range (inclusive) */
 export const GET: RequestHandler = async (event) => {
 	const user = event.locals.user;
 	if (!user) throw error(401, 'Unauthorized');
@@ -45,14 +42,13 @@ export const GET: RequestHandler = async (event) => {
 		label: r.label,
 		comment: r.comment ?? null,
 		is_open: r.is_open === 1,
-		start_time: r.start_time, // 'YYYY-MM-DD HH:MM:SS' or null
+		start_time: r.start_time,
 		end_time: r.end_time
 	}));
 
 	return json(normalized);
 };
 
-/** POST: create a new special day */
 export const POST: RequestHandler = async (event) => {
 	const user = event.locals.user;
 	if (!user) throw error(401, 'Unauthorized');

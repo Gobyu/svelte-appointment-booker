@@ -37,7 +37,16 @@
 		const [h, m] = hhmm.split(':').map(Number);
 		return h * 60 + m;
 	}
+	function fmt12(t: string | null | undefined) {
+		if (!t) return '—';
+		const [H, M] = t.split(':').map(Number);
+		const h = ((H + 11) % 12) + 1; // 0→12, 13→1 ...
+		const ampm = H >= 12 ? 'PM' : 'AM';
+		return `${h}:${String(M).padStart(2, '0')} ${ampm}`;
+	}
+
 	const withSeconds = (t: string | null) => (t ? (t.length === 8 ? t : `${t}:00`) : null);
+	const fmt = (t: string | null | undefined) => (t && t.length >= 4 ? t.slice(0, 5) : '—');
 
 	async function fetchHours() {
 		loading = true;
@@ -76,27 +85,7 @@
 		void fetchHours();
 	});
 
-	async function saveDay(day: DayKey) {
-		const row = rows[day];
-		if (row.is_open) {
-			if (!row.start_time || !row.end_time) return alert('Set both start and end.');
-			if (toMinutes(row.start_time) >= toMinutes(row.end_time))
-				return alert('Start must be before end.');
-		}
-		const payload = {
-			is_open: row.is_open ? 1 : 0,
-			start_time: row.is_open ? withSeconds(row.start_time) : null,
-			end_time: row.is_open ? withSeconds(row.end_time) : null
-		};
-		const r = await fetch(`${API_BUSINESS}/${day}`, {
-			method: 'PUT',
-			headers: { 'content-type': 'application/json' },
-			body: JSON.stringify(payload)
-		});
-		if (!r.ok) return alert(await r.text());
-		alert(`${DAY_NAMES[day]} saved`);
-	}
-
+	// ----- Quick close (kept) -----
 	async function closeDay(day: DayKey) {
 		if (!confirm(`Close every ${DAY_NAMES[day]}?`)) return;
 		const r = await fetch(`${API_BUSINESS}/${day}`, {
@@ -105,7 +94,69 @@
 			body: JSON.stringify({ is_open: 0, start_time: null, end_time: null })
 		});
 		if (!r.ok) return alert(await r.text());
-		rows[day].is_open = false;
+		rows[day] = { ...rows[day], is_open: false, start_time: '09:00', end_time: '17:00' };
+	}
+
+	// ===== Edit modal =====
+	let showEdit = $state(false);
+	let editingDay = $state<DayKey | null>(null);
+	let draft = $state<BusinessHour | null>(null);
+
+	function openEdit(day: DayKey) {
+		editingDay = day;
+		const src = rows[day];
+		draft = {
+			week_day: day,
+			is_open: src.is_open,
+			start_time: src.start_time ?? '09:00',
+			end_time: src.end_time ?? '17:00'
+		};
+		showEdit = true;
+	}
+
+	function ensureDefaultsWhenOpening() {
+		if (!draft) return;
+		if (draft.is_open) {
+			draft.start_time ??= '09:00';
+			draft.end_time ??= '17:00';
+		} else {
+			// keep last set times but they won’t be sent
+		}
+	}
+
+	async function saveEdit() {
+		if (!draft || editingDay == null) return;
+
+		if (draft.is_open) {
+			if (!draft.start_time || !draft.end_time) return alert('Set both start and end times.');
+			if (toMinutes(draft.start_time) >= toMinutes(draft.end_time))
+				return alert('Start must be before end.');
+		}
+
+		const payload = {
+			is_open: draft.is_open ? 1 : 0,
+			start_time: draft.is_open ? withSeconds(draft.start_time) : null,
+			end_time: draft.is_open ? withSeconds(draft.end_time) : null
+		};
+
+		const r = await fetch(`${API_BUSINESS}/${editingDay}`, {
+			method: 'PUT',
+			headers: { 'content-type': 'application/json' },
+			body: JSON.stringify(payload)
+		});
+		if (!r.ok) return alert(await r.text());
+
+		// reflect changes locally
+		rows[editingDay] = {
+			week_day: editingDay,
+			is_open: draft.is_open,
+			start_time: draft.is_open ? (draft.start_time ?? '09:00') : '09:00',
+			end_time: draft.is_open ? (draft.end_time ?? '17:00') : '17:00'
+		};
+
+		showEdit = false;
+		editingDay = null;
+		draft = null;
 	}
 </script>
 
@@ -115,7 +166,7 @@
 			<a
 				href="/manage"
 				aria-label="Back to management"
-				class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-gray-300 hover:bg-gray-100 focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none dark:border-zinc-700 dark:hover:bg-zinc-800"
+				class="inline-flex h-9 w-9 items-center justify-center rounded-lg hover:bg-gray-100 focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none dark:border-zinc-700 dark:hover:bg-zinc-800"
 			>
 				<svg
 					xmlns="http://www.w3.org/2000/svg"
@@ -152,9 +203,9 @@
 		<table class="w-full text-sm">
 			<thead>
 				<tr class="text-left text-gray-600 dark:text-gray-300">
-					<th class="px-4 py-3">Weekday</th>
-					<th class="px-4 py-3">Start</th>
-					<th class="px-4 py-3">End</th>
+					<th class="px-4 py-3"></th>
+					<th class="px-4 py-3">Opening</th>
+					<th class="px-4 py-3">Closing</th>
 					<th class="px-4 py-3"></th>
 				</tr>
 			</thead>
@@ -163,59 +214,40 @@
 					{@const day = d as 1 | 2 | 3 | 4 | 5 | 6 | 7}
 					<tr class="border-t border-gray-200 dark:border-zinc-700">
 						<td class="px-4 py-3 font-medium">{DAY_NAMES[day]}</td>
+
 						<td class="px-4 py-3">
 							{#if rows[day].is_open}
-								<input
-									type="time"
-									class="w-[8.5rem] rounded border border-gray-300 px-2 py-1 dark:border-zinc-700 dark:bg-zinc-900 dark:text-gray-100"
-									value={rows[day].start_time ?? ''}
-									oninput={(e) => {
-										rows[day].start_time = (e.currentTarget as HTMLInputElement).value;
-									}}
-								/>
+								<span>{fmt12(rows[day].start_time)}</span>
 							{:else}
 								<span class="text-gray-500">Closed</span>
 							{/if}
 						</td>
 						<td class="px-4 py-3">
 							{#if rows[day].is_open}
-								<input
-									type="time"
-									class="w-[8.5rem] rounded border border-gray-300 px-2 py-1 dark:border-zinc-700 dark:bg-zinc-900 dark:text-gray-100"
-									value={rows[day].end_time ?? ''}
-									oninput={(e) => {
-										rows[day].end_time = (e.currentTarget as HTMLInputElement).value;
-									}}
-								/>
+								<span>{fmt12(rows[day].end_time)}</span>
 							{:else}
-								<span class="text-gray-500"></span>
+								<span class="text-gray-500">—</span>
 							{/if}
 						</td>
+
 						<td class="px-4 py-3">
-							{#if rows[day].is_open}
-								<div class="flex gap-2">
-									<button
-										class="rounded bg-zinc-900 px-3 py-1.5 text-white hover:opacity-90 dark:bg-zinc-100 dark:text-black"
-										onclick={() => saveDay(day)}>Save</button
-									>
+							<div class="flex gap-2">
+								<button
+									class="rounded bg-zinc-900 px-3 py-1.5 text-white hover:opacity-90 dark:bg-zinc-100 dark:text-black"
+									onclick={() => openEdit(day)}
+								>
+									Edit
+								</button>
+
+								{#if rows[day].is_open}
 									<button
 										class="rounded border px-3 py-1.5 hover:bg-gray-50 dark:border-zinc-700 dark:hover:bg-zinc-800"
-										onclick={() => closeDay(day)}>Close</button
+										onclick={() => closeDay(day)}
 									>
-								</div>
-							{:else}
-								<button
-									class="rounded border px-3 py-1.5 hover:bg-gray-50 dark:border-zinc-700 dark:hover:bg-zinc-800"
-									onclick={() => {
-										rows[day].is_open = true;
-										rows[day].start_time ??= '09:00';
-										rows[day].end_time ??= '17:00';
-										void saveDay(day);
-									}}
-								>
-									Open & Save
-								</button>
-							{/if}
+										Close
+									</button>
+								{/if}
+							</div>
 						</td>
 					</tr>
 				{/each}
@@ -223,3 +255,104 @@
 		</table>
 	</div>
 </section>
+
+<!-- Edit modal -->
+{#if showEdit && draft && editingDay}
+	<div
+		class="fixed inset-0 z-50 flex items-center justify-center p-4"
+		role="dialog"
+		aria-modal="true"
+		aria-label="Edit business hours"
+		onkeydown={(e) => {
+			if (e.key === 'Escape') {
+				e.stopPropagation();
+				showEdit = false;
+				editingDay = null;
+				draft = null;
+			}
+		}}
+		tabindex="0"
+	>
+		<!-- backdrop -->
+		<button
+			type="button"
+			class="absolute inset-0 bg-black/40"
+			aria-label="Close modal"
+			onclick={() => {
+				showEdit = false;
+				editingDay = null;
+				draft = null;
+			}}
+		></button>
+
+		<!-- panel -->
+		<div
+			class="relative z-10 w-full max-w-md rounded-2xl border border-gray-200 bg-white p-4 shadow-lg dark:border-zinc-700 dark:bg-zinc-900"
+		>
+			<div class="mb-3 flex items-center justify-between">
+				<h2 class="text-lg font-semibold">Edit — {DAY_NAMES[editingDay]}</h2>
+				<button
+					class="rounded border px-2 py-1 text-sm hover:bg-gray-50 dark:border-zinc-700 dark:hover:bg-zinc-800"
+					onclick={() => {
+						showEdit = false;
+						editingDay = null;
+						draft = null;
+					}}
+				>
+					Close
+				</button>
+			</div>
+
+			<div class="grid gap-3">
+				<label class="inline-flex items-center gap-2 text-sm">
+					<input
+						type="checkbox"
+						bind:checked={draft.is_open}
+						oninput={() => ensureDefaultsWhenOpening()}
+					/>
+					<span>Open this day</span>
+				</label>
+
+				{#if draft.is_open}
+					<div class="grid grid-cols-2 gap-3">
+						<label class="text-sm"
+							>Opening
+							<input
+								type="time"
+								class="mt-1 w-full rounded border border-gray-300 px-2 py-1 dark:border-zinc-700 dark:bg-zinc-900 dark:text-gray-100"
+								bind:value={draft.start_time}
+							/>
+						</label>
+						<label class="text-sm"
+							>Closing
+							<input
+								type="time"
+								class="mt-1 w-full rounded border border-gray-300 px-2 py-1 dark:border-zinc-700 dark:bg-zinc-900 dark:text-gray-100"
+								bind:value={draft.end_time}
+							/>
+						</label>
+					</div>
+				{/if}
+
+				<div class="mt-1 flex justify-end gap-2">
+					<button
+						class="rounded border px-3 py-2 hover:bg-gray-50 dark:border-zinc-700 dark:hover:bg-zinc-800"
+						onclick={() => {
+							showEdit = false;
+							editingDay = null;
+							draft = null;
+						}}
+					>
+						Cancel
+					</button>
+					<button
+						class="rounded bg-zinc-900 px-3 py-2 font-semibold text-white hover:opacity-90 dark:bg-zinc-100 dark:text-black"
+						onclick={saveEdit}
+					>
+						Save changes
+					</button>
+				</div>
+			</div>
+		</div>
+	</div>
+{/if}

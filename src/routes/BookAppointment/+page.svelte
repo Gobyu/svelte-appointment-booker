@@ -27,6 +27,49 @@
 		type: string;
 		comments: string;
 	};
+	type ServiceT = {
+		id: number;
+		name: string;
+		description: string | null;
+		price: number;
+	};
+
+	let services = $state<ServiceT[]>([]);
+	let servicesLoading = $state(false);
+	let servicesError = $state<string | null>(null);
+	let showServiceModal = $state(false);
+
+	function formatMoney(n: number) {
+		try {
+			return n.toLocaleString(undefined, { style: 'currency', currency: 'USD' });
+		} catch {
+			return `$${n.toFixed(2)}`;
+		}
+	}
+
+	async function loadServices() {
+		servicesLoading = true;
+		servicesError = null;
+		try {
+			const r = await fetch('/api/services');
+			if (!r.ok) throw new Error(await r.text());
+			services = await r.json();
+		} catch (e: any) {
+			servicesError = e?.message ?? 'Failed to load services';
+			services = [];
+		} finally {
+			servicesLoading = false;
+		}
+	}
+
+	$effect(() => {
+		void loadServices();
+	});
+
+	function pickService(s: ServiceT) {
+		formData = { ...formData, type: s.name };
+		showServiceModal = false;
+	}
 
 	const DEFAULT_SLOT_MINUTES = 30;
 	const STEPS: Step[] = ['date', 'time', 'details'];
@@ -510,18 +553,19 @@
 						class="rounded-2xl border border-gray-200 bg-white p-4 shadow dark:border-zinc-700 dark:bg-zinc-900"
 					>
 						<label class="mb-4 block text-left font-bold">
-							Name* :
+							Name :
 							<input
 								type="text"
 								name="name"
 								bind:value={formData.name}
 								required
+								placeholder="John Appleseed"
 								class="mt-1 box-border w-full rounded border border-gray-300 p-2.5 text-base focus:ring-2 focus:ring-gray-300 focus:outline-none dark:border-zinc-700 dark:bg-zinc-900 dark:text-gray-100 dark:focus:ring-zinc-600"
 							/>
 						</label>
 
 						<label class="mb-4 block text-left font-bold">
-							Phone Number* :
+							Phone Number :
 							<input
 								type="tel"
 								name="phoneNumber"
@@ -543,10 +587,40 @@
 								type="email"
 								name="email"
 								bind:value={formData.email}
+								placeholder="example@gmail.com"
 								class="mt-1 box-border w-full rounded border border-gray-300 p-2.5 text-base focus:ring-2 focus:ring-gray-300 focus:outline-none dark:border-zinc-700 dark:bg-zinc-900 dark:text-gray-100 dark:focus:ring-zinc-600"
 							/>
 						</label>
 
+						<div class="mb-4 text-left font-bold">
+							<div class="mb-1">Type of Appointment*</div>
+
+							<button
+								type="button"
+								class="flex w-full items-center justify-between rounded border border-gray-300 bg-white px-3 py-2.5 text-left text-base text-gray-900 hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-300 dark:border-zinc-700 dark:bg-zinc-900 dark:text-gray-100 dark:hover:bg-zinc-800 dark:focus:ring-zinc-600"
+								onclick={() => (showServiceModal = true)}
+								aria-haspopup="dialog"
+								aria-expanded={showServiceModal}
+							>
+								<span class="truncate">
+									{formData.type ? formData.type : 'Type of Appointment'}
+								</span>
+								<span class="ml-3 text-gray-500 dark:text-gray-300">{'>'}</span>
+							</button>
+
+							{#if formData.type}
+								<div class="mt-1 text-xs font-normal text-gray-600 dark:text-gray-300">
+									Selected: {formData.type}
+									<button
+										type="button"
+										class="ml-2 underline hover:no-underline"
+										onclick={() => (formData = { ...formData, type: '' })}
+									>
+										Clear
+									</button>
+								</div>
+							{/if}
+						</div>
 						<label class="mb-4 block text-left font-bold">
 							Duration* :
 							<select
@@ -560,22 +634,6 @@
 								<option value="60">1 hour</option>
 							</select>
 						</label>
-
-						<label class="mb-4 block text-left font-bold">
-							Type of Appointment* :
-							<select
-								name="type"
-								bind:value={formData.type}
-								required
-								class="mt-1 box-border w-full rounded border border-gray-300 bg-white p-2.5 text-base text-gray-900 focus:ring-2 focus:ring-gray-300 focus:outline-none dark:border-zinc-700 dark:bg-zinc-900 dark:text-gray-100 dark:focus:ring-zinc-600"
-							>
-								<option value="">Select</option>
-								<option value="consultation">consultation</option>
-								<option value="checkup">checkup</option>
-								<option value="other">other</option>
-							</select>
-						</label>
-
 						<label class="mb-4 block text-left font-bold">
 							Additional Information:
 							<textarea
@@ -651,3 +709,77 @@
 		{/each}
 	</div>
 {/snippet}
+
+{#if showServiceModal}
+	<div
+		class="fixed inset-0 z-50 flex items-center justify-center p-4"
+		role="dialog"
+		aria-modal="true"
+		aria-label="Choose a service"
+		onkeydown={(e) => {
+			if (e.key === 'Escape') {
+				e.stopPropagation();
+				showServiceModal = false;
+			}
+		}}
+		tabindex="0"
+	>
+		<button
+			type="button"
+			class="absolute inset-0 bg-black/40"
+			aria-label="Close modal"
+			onclick={() => (showServiceModal = false)}
+		></button>
+
+		<div
+			class="relative z-10 w-full max-w-2xl rounded-2xl border border-gray-200 bg-white p-4 shadow-lg dark:border-zinc-700 dark:bg-zinc-900"
+		>
+			<div class="mb-3 flex items-center justify-between">
+				<h2 class="text-lg font-semibold">Choose a service</h2>
+				<button
+					class="rounded border px-2 py-1 text-sm hover:bg-gray-50 dark:border-zinc-700 dark:hover:bg-zinc-800"
+					onclick={() => (showServiceModal = false)}
+				>
+					Close
+				</button>
+			</div>
+
+			{#if servicesLoading}
+				<p class="text-sm text-gray-600 dark:text-gray-300">Loading services…</p>
+			{:else if servicesError}
+				<div
+					class="rounded border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-800 dark:border-red-700 dark:bg-red-950/40 dark:text-red-200"
+				>
+					{servicesError}
+				</div>
+			{:else if services.length === 0}
+				<p class="text-sm text-gray-600 dark:text-gray-300">No services available.</p>
+			{:else}
+				<div class="space-y-3">
+					{#each services as s}
+						<div class="rounded-xl border border-gray-200 p-3 dark:border-zinc-700">
+							<div class="flex items-start justify-between gap-3">
+								<div>
+									<div class="text-base font-semibold">{s.name}</div>
+									{#if s.description}
+										<p class="mt-1 text-sm text-gray-600 dark:text-gray-300">{s.description}</p>
+									{/if}
+								</div>
+								<div class="text-sm font-medium">{formatMoney(s.price)}</div>
+							</div>
+							<div class="mt-3 flex justify-end">
+								<button
+									type="button"
+									class="rounded bg-zinc-900 px-3 py-1.5 text-white hover:opacity-90 dark:bg-zinc-100 dark:text-black"
+									onclick={() => pickService(s)}
+								>
+									Select
+								</button>
+							</div>
+						</div>
+					{/each}
+				</div>
+			{/if}
+		</div>
+	</div>
+{/if}

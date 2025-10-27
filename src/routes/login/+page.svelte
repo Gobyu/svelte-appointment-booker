@@ -24,7 +24,6 @@
 			});
 
 			if (!r.ok) {
-				// try to read structured error from backend
 				const msg =
 					(await r.json().catch(() => null))?.message ||
 					(await r.text().catch(() => '')) ||
@@ -32,8 +31,7 @@
 				throw new Error(msg);
 			}
 
-			// cookie is set by backend; just navigate
-			await goto(redirectTo, { replaceState: true });
+			await goto(redirectTo, { replaceState: true, invalidateAll: true });
 		} catch (err: any) {
 			errorText = err?.message ?? 'Unable to log in';
 		} finally {
@@ -48,8 +46,6 @@
 
 <div class="mx-auto max-w-md px-4 py-10">
 	<h1 class="mb-6 text-center text-3xl font-bold">Log in</h1>
-
-	<!-- error alert -->
 	{#if errorText}
 		<div
 			role="alert"
@@ -66,7 +62,6 @@
 		novalidate
 	>
 		<div class="grid gap-4">
-			<!-- Email -->
 			<div class="grid gap-1">
 				<label for="email" class="text-sm font-medium">Email</label>
 				<input
@@ -80,8 +75,6 @@
 					placeholder="you@example.com"
 				/>
 			</div>
-
-			<!-- Password with show/hide -->
 			<div class="grid gap-1">
 				<label for="password" class="text-sm font-medium">Password</label>
 				<div class="relative">
@@ -106,8 +99,6 @@
 					</button>
 				</div>
 			</div>
-
-			<!-- Submit -->
 			<button
 				type="submit"
 				class="mt-2 inline-flex items-center justify-center rounded-xl bg-zinc-900 px-4 py-2 font-semibold text-white hover:opacity-90 disabled:opacity-60 dark:bg-zinc-100 dark:text-black"
@@ -119,7 +110,6 @@
 		</div>
 	</form>
 
-	<!-- small helper links -->
 	<div class="mt-4 flex items-center justify-between text-sm text-gray-600 dark:text-gray-300">
 		<a href="/register" class="underline hover:no-underline">Create account</a>
 		<a href="/forgot" class="underline hover:no-underline">Forgot password?</a>
