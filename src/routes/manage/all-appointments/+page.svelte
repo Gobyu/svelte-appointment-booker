@@ -7,6 +7,7 @@
 		name: string;
 		email: string | null;
 		phoneNumber: string | null;
+		location: string | null;
 		date: string;
 		time: string;
 		duration: number;

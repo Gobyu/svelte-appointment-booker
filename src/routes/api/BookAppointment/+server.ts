@@ -3,12 +3,22 @@ import { q } from '$lib/server/db';
 import { normalizeNANPTo10, isISODate } from '$lib/server/utils';
 
 export const POST = async ({ request }) => {
-	const { name, phoneNumber, email, date, time, duration, type, comments } = await request
+	const { name, phoneNumber, email, date, time, duration, type, comments, location } = await request
 		.json()
 		.catch(() => ({}));
 
-	if (!name || !date || !time || !duration || !type)
+	// location is now required
+	if (!name || !date || !time || !duration || !type || location == null)
 		throw error(400, { message: 'Missing required fields' });
+
+	// Validate location
+	const locationId = Number(location);
+	if (!Number.isInteger(locationId) || locationId <= 0)
+		throw error(400, { message: 'Invalid location' });
+
+	// Optional: ensure the location exists (recommended)
+	const locRows = await q<any[]>(`SELECT id FROM locations WHERE id = ? LIMIT 1`, [locationId]);
+	if (locRows.length === 0) throw error(400, { message: 'Location not found' });
 
 	const dur = Number(duration);
 	if (!Number.isInteger(dur) || ![30, 60].includes(dur))
@@ -25,20 +35,22 @@ export const POST = async ({ request }) => {
 	if (selectedDateTime < new Date())
 		throw error(400, { message: 'Appointment cannot be in the past' });
 
+	// Conflict check should include location so two locations can book the same time
 	const conflictSql = `
     SELECT id FROM appointments
-    WHERE date = ?
+    WHERE location = ?
+      AND date = ?
       AND TIME(?) < ADDTIME(time, SEC_TO_TIME(duration*60))
       AND ADDTIME(TIME(?), SEC_TO_TIME(?*60)) > time
     LIMIT 1
   `;
-	const cRows = await q<any[]>(conflictSql, [date, startHHMM, startHHMM, dur]);
+	const cRows = await q<any[]>(conflictSql, [locationId, date, startHHMM, startHHMM, dur]);
 	if (cRows.length > 0) throw error(409, { message: 'Time conflict with another appointment' });
 
 	const insertSql = `
     INSERT INTO appointments
-      (name, phoneNumber, email, date, time, duration, type, comments, active, paid)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1, 0)
+      (name, phoneNumber, email, date, time, duration, type, comments, location, active, paid)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1, 0)
   `;
 	await q(insertSql, [
 		name,
@@ -48,7 +60,9 @@ export const POST = async ({ request }) => {
 		`${startHHMM}:00`,
 		dur,
 		type,
-		comments ?? null
+		comments ?? null,
+		locationId
 	]);
+
 	return json({ message: 'Appointment saved successfully' });
 };

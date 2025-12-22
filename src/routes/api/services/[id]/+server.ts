@@ -26,11 +26,19 @@ export const GET: RequestHandler = async (event) => {
 		await requireAdmin(user);
 	}
 
-	return json({
-		id: r.id,
-		name: r.name,
-		description: r.description ?? null,
-		price: Number(r.price),
-		availability: isAvailable
-	});
+	return json(
+		{
+			id: r.id,
+			name: r.name,
+			description: r.description ?? null,
+			price: Number(r.price),
+			availability: isAvailable
+		},
+		{
+			headers: {
+
+				'Cache-Control': 'no-store'
+			}
+		}
+	);
 };
