@@ -681,7 +681,7 @@
 									: 'border-gray-300 bg-zinc-100 text-gray-900 dark:border-zinc-700 dark:bg-zinc-800 dark:text-gray-100'
 						} hover:ring-2 hover:ring-indigo-400 focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none`}
 					>
-						{i + 1}. {s.toUpperCase()}
+						{i + 1}. {STEP_LABEL[s]}
 					</button>
 				{:else}
 					<div
@@ -692,7 +692,7 @@
 						}`}
 						aria-current={active ? 'step' : undefined}
 					>
-						{i + 1}. {s.toUpperCase()}
+						{i + 1}. {STEP_LABEL[s]}
 					</div>
 				{/if}
 
