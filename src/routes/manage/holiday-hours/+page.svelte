@@ -298,7 +298,7 @@
 				Refresh
 			</button>
 			<button
-				class="rounded bg-zinc-900 px-3 py-2 font-semibold text-white hover:opacity-90 dark:bg-zinc-100 dark:text-black"
+				class="rounded bg-blue-500 px-3 py-2 font-semibold text-white hover:opacity-90 dark:text-black"
 				onclick={() => (showAddModal = true)}
 			>
 				Add
@@ -360,16 +360,10 @@
 
 										<div class="flex gap-2">
 											<button
-												class="rounded bg-zinc-900 px-3 py-1.5 text-white hover:opacity-90 dark:bg-zinc-100 dark:text-black"
+												class="rounded bg-blue-500 px-3 py-1.5 text-white hover:opacity-90 dark:text-black"
 												onclick={() => openEdit(idx, m)}
 											>
-												Edit
-											</button>
-											<button
-												class="rounded border px-3 py-1.5 hover:bg-gray-50 dark:border-zinc-700 dark:hover:bg-zinc-800"
-												onclick={() => deleteRow(idx, m)}
-											>
-												Delete
+												✎
 											</button>
 										</div>
 									</div>

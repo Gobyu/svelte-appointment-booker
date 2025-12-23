@@ -233,20 +233,11 @@
 						<td class="px-4 py-3">
 							<div class="flex gap-2">
 								<button
-									class="rounded bg-zinc-900 px-3 py-1.5 text-white hover:opacity-90 dark:bg-zinc-100 dark:text-black"
+									class="rounded bg-blue-500 px-3 py-1.5 text-white hover:opacity-90 dark:text-black"
 									onclick={() => openEdit(day)}
 								>
-									Edit
+									✎
 								</button>
-
-								{#if rows[day].is_open}
-									<button
-										class="rounded border px-3 py-1.5 hover:bg-gray-50 dark:border-zinc-700 dark:hover:bg-zinc-800"
-										onclick={() => closeDay(day)}
-									>
-										Close
-									</button>
-								{/if}
 							</div>
 						</td>
 					</tr>
@@ -290,17 +281,7 @@
 			class="relative z-10 w-full max-w-md rounded-2xl border border-gray-200 bg-white p-4 shadow-lg dark:border-zinc-700 dark:bg-zinc-900"
 		>
 			<div class="mb-3 flex items-center justify-between">
-				<h2 class="text-lg font-semibold">Edit — {DAY_NAMES[editingDay]}</h2>
-				<button
-					class="rounded border px-2 py-1 text-sm hover:bg-gray-50 dark:border-zinc-700 dark:hover:bg-zinc-800"
-					onclick={() => {
-						showEdit = false;
-						editingDay = null;
-						draft = null;
-					}}
-				>
-					Close
-				</button>
+				<h2 class="text-lg font-semibold">{DAY_NAMES[editingDay]}</h2>
 			</div>
 
 			<div class="grid gap-3">

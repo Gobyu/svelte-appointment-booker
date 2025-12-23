@@ -71,5 +71,18 @@
 				Add/Remove/Modify Services
 			</p>
 		</a>
+		<a
+			href="/manage/locations"
+			class="group flex aspect-square flex-col items-center justify-center rounded-2xl border border-gray-200 bg-white text-center shadow transition hover:shadow-md dark:border-zinc-700 dark:bg-zinc-900"
+			aria-label="All appointments"
+		>
+			<div class="text-3xl">🌎</div>
+			<div class="mt-2 text-lg font-semibold">Locations</div>
+			<p
+				class="mt-1 max-w-[16ch] text-sm text-gray-600 group-hover:text-gray-800 dark:text-gray-300 dark:group-hover:text-gray-100"
+			>
+				Modify locations
+			</p>
+		</a>
 	</div>
 </section>

@@ -137,7 +137,7 @@
 				Refresh
 			</button>
 			<button
-				class="rounded bg-zinc-900 px-3 py-2 font-semibold text-white hover:opacity-90 dark:bg-zinc-100 dark:text-black"
+				class="rounded bg-blue-500 px-3 py-2 font-semibold text-white hover:opacity-90 dark:text-black"
 				onclick={() => (isAddModalOpen = true)}
 			>
 				Add
@@ -177,16 +177,10 @@
 							</div>
 							<div class="flex shrink-0 gap-2">
 								<button
-									class="rounded bg-zinc-900 px-3 py-1.5 text-white hover:opacity-90 dark:bg-zinc-100 dark:text-black"
+									class="rounded bg-blue-500 px-3 py-1.5 text-white hover:opacity-90 dark:text-black"
 									onclick={() => openEditModal(service)}
 								>
-									Edit
-								</button>
-								<button
-									class="rounded border px-3 py-1.5 hover:bg-gray-50 dark:border-zinc-700 dark:hover:bg-zinc-800"
-									onclick={() => deleteServiceById(service.id, service.name)}
-								>
-									Delete
+									✎
 								</button>
 							</div>
 						</div>
@@ -223,12 +217,6 @@
 		>
 			<div class="mb-3 flex items-center justify-between">
 				<h2 class="text-lg font-semibold">Add service</h2>
-				<button
-					class="rounded border px-2 py-1 text-sm hover:bg-gray-50 dark:border-zinc-700 dark:hover:bg-zinc-800"
-					onclick={() => (isAddModalOpen = false)}
-				>
-					Close
-				</button>
 			</div>
 
 			<div class="grid gap-3">
@@ -333,15 +321,6 @@
 		>
 			<div class="mb-3 flex items-center justify-between">
 				<h2 class="text-lg font-semibold">Edit service</h2>
-				<button
-					class="rounded border px-2 py-1 text-sm hover:bg-gray-50 dark:border-zinc-700 dark:hover:bg-zinc-800"
-					onclick={() => {
-						isEditModalOpen = false;
-						editServiceDraft = null;
-					}}
-				>
-					Close
-				</button>
 			</div>
 
 			<div class="grid gap-3">

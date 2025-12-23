@@ -331,7 +331,7 @@
 			</button>
 
 			<button
-				class="rounded bg-zinc-900 px-3 py-2 font-semibold text-white hover:opacity-90 dark:bg-zinc-100 dark:text-black"
+				class="rounded bg-blue-500 px-3 py-2 font-semibold text-white hover:opacity-90 dark:text-black"
 				onclick={() => (isAddModalOpen = true)}
 			>
 				Add
@@ -397,16 +397,10 @@
 
 										<div class="flex shrink-0 gap-2">
 											<button
-												class="rounded bg-zinc-900 px-3 py-1.5 text-white hover:opacity-90 dark:bg-zinc-100 dark:text-black"
+												class="rounded bg-blue-500 px-3 py-1.5 text-white hover:opacity-90 dark:text-black"
 												onclick={() => openEditModal(specialDay)}
 											>
-												Edit
-											</button>
-											<button
-												class="rounded border px-3 py-1.5 hover:bg-gray-50 dark:border-zinc-700 dark:hover:bg-zinc-800"
-												onclick={() => deleteSpecialDayById(specialDay.id, specialDay.label)}
-											>
-												Delete
+												✎
 											</button>
 										</div>
 									</div>
