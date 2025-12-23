@@ -1,84 +1,126 @@
-<script lang="ts"></script>
+<!-- src/routes/about/+page.svelte -->
+<script lang="ts">
+	// No logic needed (Svelte 5 runes-safe)
+</script>
 
-<h1>About</h1>
-<p>
-	Lorem ipsum dolor sit amet, consectetur adipisicing elit. Recusandae non asperiores deserunt,
-	veniam voluptatibus libero repellat placeat facere soluta? Et obcaecati magni eum possimus veniam
-	quibusdam modi eligendi ut quas voluptatem dolores nulla doloribus soluta laudantium, animi cum
-	deleniti dolorem consequuntur minus aut ex numquam explicabo dicta enim? Culpa quis quidem
-	deserunt fugiat aspernatur iure minus quia laudantium voluptate expedita. Ipsam ipsum aut fugit
-	labore vel non expedita aperiam. Pariatur neque repudiandae, ipsa a rem molestiae quis eos
-	laudantium doloremque? Autem ullam dignissimos corrupti, repellat illo expedita aspernatur ipsa
-	porro inventore voluptatibus optio vel quia eaque voluptatem iste eligendi doloribus alias nam.
-	Doloremque deleniti necessitatibus sapiente eveniet id? Quibusdam accusantium totam sit distinctio
-	quasi et veniam officiis labore perspiciatis, non itaque laboriosam debitis vitae sequi aut!
-	Expedita dolor officiis obcaecati eos magni soluta reprehenderit minus. Aliquam perspiciatis
-	assumenda provident ab numquam aliquid tenetur doloremque maiores nobis, quisquam impedit quis.
-	Delectus fugit cumque maiores debitis unde rem nobis iure ipsam necessitatibus hic tempora nisi
-	sed, aspernatur exercitationem omnis eum, iusto, deserunt molestiae! Quod rerum minus ipsum
-	deleniti eveniet, necessitatibus doloremque voluptatum autem accusamus laboriosam fuga quisquam
-	ipsa recusandae ipsam libero iste harum. Iusto nam porro dignissimos culpa, error eum non
-	repellat, quis laboriosam eaque, aspernatur rerum maxime. Necessitatibus neque sit pariatur
-	quaerat, dolorem mollitia blanditiis cumque quidem eius sapiente ea fugit sunt voluptas aliquam
-	voluptate, magni laborum recusandae rerum quasi alias assumenda ratione molestiae? Minima tempora
-	debitis accusamus fugiat id eveniet quam alias, numquam veniam reiciendis quis consectetur earum
-	exercitationem repellat qui eaque cupiditate vero assumenda adipisci aliquid! Quam, fuga voluptate
-	dolore iusto nostrum dolorem corrupti, velit, ex eum dignissimos enim? Aut quos consectetur, non
-	ad ea nemo illum soluta natus inventore. Soluta rerum minus ducimus odio quam id optio voluptates
-	qui, ipsum deserunt porro vitae unde nostrum voluptate, excepturi reiciendis modi, maiores dolores
-	iure. Sed atque neque minima quidem alias recusandae incidunt quis vero fugiat a id, quod rerum
-	doloremque tempore necessitatibus facilis beatae laudantium. Alias quam reprehenderit repellat
-	nisi beatae voluptate corrupti nostrum labore dolorum nihil totam sint at voluptatum cumque
-	sapiente debitis, fugiat ab sed corporis. Autem magni ullam, voluptatum saepe quo cupiditate quod
-	voluptate? Ipsum fugiat tenetur omnis minima aliquid voluptatum blanditiis praesentium, beatae
-	magni, adipisci nostrum cum asperiores consequatur officia. Sit, at provident? Perspiciatis dolor
-	soluta eligendi debitis architecto sed, quae autem, aspernatur consequatur nisi quo delectus
-	mollitia officiis esse! Iste dolorem, molestias soluta deserunt aperiam odit sint praesentium
-	nostrum ea commodi quasi quidem assumenda neque modi obcaecati consequatur enim hic error. Ratione
-	eum culpa error ex enim veniam nobis quisquam. Ducimus aliquid facere ipsam delectus quod commodi
-	aspernatur error quam, exercitationem sapiente. Recusandae voluptatem soluta aliquam, amet error
-	harum voluptates reiciendis facilis ducimus eius esse? Nesciunt provident ea consequuntur minima
-	ipsum, commodi nemo aperiam quos soluta fuga aliquid nobis libero neque perspiciatis iusto vero
-	odit error. Necessitatibus voluptas alias minus soluta quos amet facilis doloribus esse est quo?
-	Hic ipsa officiis tempore. Similique ratione saepe eligendi esse praesentium aperiam reiciendis
-	libero ullam, accusamus eum nesciunt porro harum quo ut. Quo illo iure nesciunt et magni
-	temporibus ab laudantium veritatis placeat neque sed quam doloremque iusto, modi, labore deleniti
-	eum. Ducimus aliquam illo molestiae, assumenda aliquid delectus architecto, iusto excepturi
-	officia impedit a eos quaerat modi quisquam! Laboriosam obcaecati quae amet natus laudantium
-	officiis nihil corrupti quibusdam repellat. Perspiciatis repudiandae dolorum dicta sed error harum
-	at nesciunt cupiditate alias vel, assumenda cum quisquam minus obcaecati ratione esse ut quam
-	commodi debitis maxime eius ipsam beatae veritatis porro? Impedit id molestias illum, dolores
-	similique neque alias. Veniam nisi, vel, fuga ea tempore alias unde qui aspernatur eveniet, atque
-	ad? Autem magni odio ab. Cumque, numquam consectetur dolor saepe eos voluptatibus similique
-	aspernatur iure quis voluptas ipsum. Et placeat a esse non. Natus, tempore at dolorum quaerat a
-	voluptate minima voluptates incidunt dolore laboriosam rerum eius architecto eligendi repellat!
-	Laudantium modi cupiditate similique. Hic quod asperiores iure, possimus, quibusdam veniam
-	laudantium corrupti a magni, voluptatem quo quis? Hic soluta sapiente ipsum, quisquam modi
-	facilis, est provident nesciunt, suscipit consequatur cum totam quae? Fugiat aperiam in reiciendis
-	a minus suscipit possimus non animi maxime, nulla laudantium repudiandae iusto atque, perspiciatis
-	adipisci incidunt tempore provident ipsum repellendus at necessitatibus temporibus praesentium.
-	Nobis voluptatem nam a? Eos, hic accusamus, commodi optio soluta alias eligendi, maiores vero
-	molestiae ipsum minus omnis laudantium? Consequatur modi, laborum earum fugit tenetur quisquam
-	doloremque dignissimos iusto rem deleniti quae suscipit laboriosam maiores dolore explicabo
-	veritatis beatae exercitationem minus sequi. Minus tempore dolorum nam voluptatem? Est repudiandae
-	voluptatem eaque tenetur numquam natus, exercitationem at. Ipsa expedita dolor sed. Iure dolorem,
-	expedita architecto reiciendis maxime dolore recusandae dolor accusamus aperiam officia, impedit
-	ullam nihil sequi numquam cupiditate quam. Laudantium nostrum iusto aliquam, optio soluta
-	provident neque molestiae? Perferendis distinctio sed itaque architecto eligendi quam molestiae
-	est molestias quos quibusdam vero dolore mollitia, facere recusandae ratione vitae, aperiam
-	temporibus. Beatae dolorum ea doloribus sint eum corporis distinctio, amet, quae aliquid impedit
-	excepturi nesciunt? Voluptatibus magnam unde est minus iure, non perspiciatis cum repellendus sint
-	architecto natus doloribus eaque facere quisquam nihil optio ipsa soluta, quae reiciendis sit
-	beatae vitae illum facilis sapiente! Magni voluptatem officiis dolor quasi suscipit ipsum maxime,
-	incidunt placeat rerum cumque unde eligendi beatae corporis, alias impedit qui assumenda a
-	dolores? Quos praesentium vitae corrupti quisquam facere quae distinctio blanditiis aliquam
-	reprehenderit recusandae ducimus eius et suscipit, dolorum repellendus nihil inventore id.
-	Voluptatibus harum perferendis fugiat, reiciendis ex nesciunt ea recusandae nihil ipsam dolorem
-	numquam architecto cupiditate assumenda aut quas alias dolorum beatae aliquid quos doloremque nisi
-	atque illum sapiente? Recusandae, rem assumenda nulla, unde dolorum ratione illum et
-	exercitationem, labore fugiat magnam sed laborum quisquam delectus hic nihil non nostrum? Culpa
-	esse, molestiae in et dolor quam quos! Saepe unde error consectetur doloribus quo! Inventore
-	dolores excepturi odio explicabo quas, sint nemo quidem illum, dolore deleniti itaque porro
-	tempore quam. Earum ea officiis omnis numquam quis animi voluptate cum enim harum porro in iste
-	molestiae fuga minus aspernatur eligendi ratione iure, sed, ipsam nam blanditiis!
-</p>
+<section class="mx-auto max-w-4xl px-4 py-10">
+	<div class="mb-8">
+		<h1 class="text-4xl font-bold tracking-tight">Our story</h1>
+		<p class="mt-2 text-gray-600 dark:text-gray-300">
+			Why we built this studio, what we believe in, and how we care for people.
+		</p>
+	</div>
+
+	<div
+		class="overflow-hidden rounded-3xl border border-gray-200 bg-gray-50 shadow-sm dark:border-zinc-700 dark:bg-zinc-900"
+	>
+		<img
+			src="https://images.unsplash.com/photo-1544161515-4ab6ce6db874?auto=format&fit=crop&w=1600&q=80"
+			alt="Massage therapy setting"
+			class="h-[260px] w-full object-cover md:h-[360px]"
+			loading="eager"
+		/>
+	</div>
+
+	<article class="prose mt-8 max-w-none prose-zinc dark:prose-invert">
+		<p>
+			Our studio began the same way many healing journeys start: with someone trying to feel better,
+			and realizing that “better” is rarely just one thing. It’s not only about loosening a tight
+			shoulder or calming a sore lower back—though those matter. It’s about being able to breathe
+			deeper, sleep more peacefully, move with less hesitation, and return to your day feeling like
+			you’re back in your body.
+		</p>
+
+		<p>
+			Before we opened our doors, we spent years working in busy clinics where schedules were tight,
+			rooms turned over quickly, and people often felt like they had to “fit” into a preset
+			treatment style. We saw how common it was for clients to arrive carrying more than physical
+			tension: long workdays, chronic stress, injuries that never quite resolved, and the quiet
+			worry that their pain was becoming normal. We also saw what happened when care slowed down
+			enough to be personal—when someone listened closely, adjusted thoughtfully, and treated the
+			person rather than the appointment slot.
+		</p>
+
+		<h2>What we wanted to change</h2>
+		<p>
+			We didn’t want massage to feel like a transaction. We wanted it to feel like a reset—clear,
+			grounded, and tailored to you. That meant building a space where you’re not rushed, where the
+			plan is explained, and where your comfort is non-negotiable. It also meant focusing on a few
+			key principles that guide every session:
+		</p>
+
+		<ul>
+			<li>
+				<strong>Listen first:</strong> Every visit starts with a quick check-in about what you’re feeling
+				and what you need today.
+			</li>
+			<li>
+				<strong>Customize always:</strong> Pressure, pace, and techniques adapt to your body, your preferences,
+				and your goals.
+			</li>
+			<li>
+				<strong>Make progress realistic:</strong> Relief can be immediate, but we also care about long-term
+				mobility and sustainable change.
+			</li>
+			<li>
+				<strong>Keep it calm:</strong> A soothing environment supports the nervous system—quiet rooms,
+				warm lighting, and a pace that lets you truly unwind.
+			</li>
+		</ul>
+
+		<h2>How our approach works</h2>
+		<p>
+			We think of each appointment as a collaboration. Some people come in wanting a deeply relaxing
+			session that quiets their mind and helps them sleep. Others need focused work around neck and
+			shoulder tension from desk posture. Some are recovering from workouts or long periods of
+			stress that have built up in the hips, calves, and back.
+		</p>
+
+		<p>
+			Whatever the reason, we start with your priorities and build from there. That might mean a
+			gentle, steady rhythm to help your body settle. It might mean slower, targeted work to address
+			stubborn tightness. It might mean balancing both—relaxation to calm the system, then specific
+			work where you need it most. We aim to leave you feeling noticeably better in the short term,
+			while also supporting a longer arc of recovery and resilience.
+		</p>
+
+		<h2>Who we built this for</h2>
+		<p>
+			This studio is for people who take care of everyone else and finally want a space to take care
+			of themselves. It’s for athletes, office workers, caregivers, students, and anyone whose body
+			is asking for a little more support. It’s for clients who are new to massage and want a clear,
+			comfortable first experience. And it’s for those who’ve tried everything and are looking for
+			consistent, thoughtful care that meets them where they are.
+		</p>
+
+		<h2>Our promise</h2>
+		<p>
+			We can’t promise that one session will solve everything. But we can promise this: you will be
+			heard, your comfort will be respected, and your care will be intentional. Our goal is
+			simple—to help you leave feeling better than when you arrived, and to make it easy to keep
+			that feeling going.
+		</p>
+
+		<p>
+			Thank you for trusting us with your time and your body. We’re grateful you’re here, and we’re
+			excited to be part of your wellness routine.
+		</p>
+	</article>
+
+	<div
+		class="mt-10 rounded-3xl border border-gray-200 bg-white p-6 shadow-sm dark:border-zinc-700 dark:bg-zinc-900"
+	>
+		<h3 class="text-xl font-semibold">Ready to book?</h3>
+		<p class="mt-1 text-sm text-gray-600 dark:text-gray-300">
+			Choose a time that works for you — we’ll take care of the rest.
+		</p>
+		<div class="mt-4">
+			<a
+				href="/BookAppointment"
+				class="inline-flex items-center justify-center rounded-xl bg-blue-600 px-5 py-2.5 font-semibold text-white hover:bg-blue-700"
+			>
+				Get started
+			</a>
+		</div>
+	</div>
+</section>

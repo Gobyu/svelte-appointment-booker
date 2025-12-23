@@ -171,7 +171,7 @@
 						<p class="text-sm text-gray-500 dark:text-gray-400">
 							{new Date(r.CreatedAt).toLocaleString()}
 						</p>
-						<p class="font-semibold" aria-label="Rating">{stars(r.Rating)}</p>
+						<p class="font-semibold text-yellow-500" aria-label="Rating">{stars(r.Rating)}</p>
 					</div>
 					<p class="mt-2 text-sm text-gray-700 dark:text-gray-200">
 						<span class="font-medium">Type:</span>
