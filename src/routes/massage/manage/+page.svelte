@@ -6,7 +6,7 @@
 
 	<div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
 		<a
-			href="/manage/all-appointments"
+			href="/massage/manange/all-appointments"
 			class="group flex aspect-square flex-col items-center justify-center rounded-2xl border border-gray-200 bg-white text-center shadow transition hover:shadow-md dark:border-zinc-700 dark:bg-zinc-900"
 			aria-label="All appointments"
 		>
@@ -19,7 +19,7 @@
 			</p>
 		</a>
 		<a
-			href="/manage/business-hours"
+			href="/massage/manange/business-hours"
 			class="group flex aspect-square flex-col items-center justify-center rounded-2xl border border-gray-200 bg-white text-center shadow transition hover:shadow-md dark:border-zinc-700 dark:bg-zinc-900"
 			aria-label="Business hours"
 		>
@@ -33,7 +33,7 @@
 		</a>
 
 		<a
-			href="/manage/holiday-hours"
+			href="/massage/manange/holiday-hours"
 			class="group flex aspect-square flex-col items-center justify-center rounded-2xl border border-gray-200 bg-white text-center shadow transition hover:shadow-md dark:border-zinc-700 dark:bg-zinc-900"
 			aria-label="Holiday hours"
 		>
@@ -46,7 +46,7 @@
 			</p>
 		</a>
 		<a
-			href="/manage/special-days"
+			href="/massage/manange/special-days"
 			class="group flex aspect-square flex-col items-center justify-center rounded-2xl border border-gray-200 bg-white text-center shadow transition hover:shadow-md dark:border-zinc-700 dark:bg-zinc-900"
 			aria-label="All appointments"
 		>
@@ -59,7 +59,7 @@
 			</p>
 		</a>
 		<a
-			href="/manage/services"
+			href="/massage/manange/services"
 			class="group flex aspect-square flex-col items-center justify-center rounded-2xl border border-gray-200 bg-white text-center shadow transition hover:shadow-md dark:border-zinc-700 dark:bg-zinc-900"
 			aria-label="All appointments"
 		>
@@ -72,7 +72,7 @@
 			</p>
 		</a>
 		<a
-			href="/manage/locations"
+			href="/massage/manange/locations"
 			class="group flex aspect-square flex-col items-center justify-center rounded-2xl border border-gray-200 bg-white text-center shadow transition hover:shadow-md dark:border-zinc-700 dark:bg-zinc-900"
 			aria-label="All appointments"
 		>

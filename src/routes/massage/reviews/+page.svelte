@@ -90,7 +90,7 @@
 		if (!pageCached(page, sort)) {
 			await fetchPage(page, sort, false);
 		}
-		goto(`/reviews?page=${page}&sort=${sort}`, {
+		goto(`/massage/reviews?page=${page}&sort=${sort}`, {
 			replaceState: true,
 			keepFocus: true,
 			noScroll: false
@@ -106,7 +106,7 @@
 		if (!pageCached(1, sort)) {
 			await fetchPage(1, sort, true);
 		}
-		goto(`/reviews?page=1&sort=${sort}`, { replaceState: true, keepFocus: true, noScroll: true });
+		goto(`/massage/reviews?page=1&sort=${sort}`, { replaceState: true, keepFocus: true, noScroll: true });
 	}
 
 	onMount(async () => {
@@ -253,7 +253,7 @@
 					page = 1;
 					total = null;
 					await fetchPage(1, 'newest', true);
-					goto(`/reviews?page=1&sort=newest`, {
+					goto(`/massage/reviews?page=1&sort=newest`, {
 						replaceState: true,
 						keepFocus: true,
 						noScroll: true

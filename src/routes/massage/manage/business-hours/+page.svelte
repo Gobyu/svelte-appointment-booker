@@ -164,7 +164,7 @@
 	<div class="mb-6">
 		<h1 class="text-3xl font-bold">
 			<a
-				href="/manage"
+				href="/massage/manange"
 				aria-label="Back to management"
 				class="inline-flex h-9 w-9 items-center justify-center rounded-lg hover:bg-gray-100 focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none dark:border-zinc-700 dark:hover:bg-zinc-800"
 			>

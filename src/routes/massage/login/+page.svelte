@@ -17,7 +17,7 @@
 		loading = true;
 
 		try {
-			const r = await fetch('/auth/login', {
+			const r = await fetch('/massage/auth/login', {
 				method: 'POST',
 				headers: { 'content-type': 'application/json' },
 				body: JSON.stringify({ email, password })
