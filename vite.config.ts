@@ -12,7 +12,29 @@ export default defineConfig({
 		paraglideVitePlugin({
 			project: './project.inlang',
 			outdir: './src/lib/paraglide',
-			strategy: ['url', 'cookie', 'baseLocale', "localStorage"]
+			strategy: ['url', 'cookie', 'baseLocale'],
+			urlPatterns: [
+				{
+					pattern: '/',
+					localized: [
+						['fr', '/fr'],
+						['zh-Hans', '/zh-Hans'],
+						['zh-Hant', '/zh-Hant'],
+						['en', '/']
+					]
+				},
+
+				{
+					pattern: '/:path(.*)?',
+					localized: [
+						['fr', '/fr/:path(.*)?'],
+						['zh-Hans', '/zh-Hans/:path(.*)?'],
+						['zh-Hant', '/zh-Hant/:path(.*)?'],
+
+						['en', '/:path(.*)?']
+					]
+				}
+			]
 		})
 	]
 });
