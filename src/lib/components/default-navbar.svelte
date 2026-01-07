@@ -8,7 +8,7 @@
 		locales,
 		localizeHref
 	} from '$lib/paraglide/runtime';
-
+	type Locale = (typeof locales)[number];
 	const props = $props<{ orgName?: string }>();
 	// Use the *de-localized* path for active-link checks (works across /en/... /fr/... etc.)
 	const basePath = $derived(deLocalizeUrl(page.url).pathname);
@@ -37,11 +37,16 @@
 	);
 
 	// Persist locale selection (cookie/localStorage strategies) AND navigate to localized URL.
-	function switchLocale(locale: (typeof locales)[number]) {
+	async function switchLocale(locale: Locale) {
 		const target = localizeHref(basePath, { locale });
-		void Promise.resolve(setLocale(locale, { reload: false })).finally(() => {
-			window.location.assign(target);
-		});
+
+		// Persist choice (cookie/localStorage strategies)
+		await Promise.resolve(setLocale(locale, { reload: false }));
+
+		console.log('current after setLocale:', getLocale());
+
+		// Now navigate (last line)
+		window.location.assign(target);
 	}
 
 	$effect(() => {

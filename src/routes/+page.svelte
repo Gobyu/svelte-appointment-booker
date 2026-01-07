@@ -3,9 +3,6 @@
 	import * as message from '$lib/paraglide/messages';
 	import { locales, getLocale } from '$lib/paraglide/runtime';
 
-	console.log('locales:', locales);
-	console.log('locale now:', getLocale());
-
 	type CardKey = 'massage' | 'farm' | null;
 
 	let openCard: CardKey = null;
