@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { page } from '$app/state';
 	import { goto, invalidateAll } from '$app/navigation';
+	import * as message from '$lib/paraglide/messages';
 
 	const props = $props<{
 		orgName?: string;
@@ -99,7 +100,7 @@
 					class:font-semibold={isActive('/massage/about')}
 					aria-current={isActive('/massage/about') ? 'page' : undefined}
 				>
-					About
+					{message.aboutAsPlainText()}
 				</a>
 
 				<a
@@ -111,7 +112,7 @@
 					class:font-semibold={isActive('/massage/reviews')}
 					aria-current={isActive('/massage/reviews') ? 'page' : undefined}
 				>
-					Reviews
+					{message.reviewsAsPlainText()}
 				</a>
 
 				<a
@@ -123,7 +124,7 @@
 					class:font-semibold={isActive('/massage/book-appointment')}
 					aria-current={isActive('/massage/book-appointment') ? 'page' : undefined}
 				>
-					Book Appointment
+					{message.bookAppointmentAsPlainText()}
 				</a>
 
 				{#if user?.role === 'admin'}
@@ -136,7 +137,7 @@
 						class:font-semibold={isActive('/massage/manange')}
 						aria-current={isActive('/massage/manange') ? 'page' : undefined}
 					>
-						Manage
+						{message.manageAsPlainText()}
 					</a>
 				{/if}
 			</div>
@@ -151,7 +152,7 @@
 		dark:text-gray-100 dark:hover:text-indigo-400"
 						onclick={logout}
 					>
-						Log out
+						{message.logOutAsPlainText()}
 					</button>
 				{:else}
 					<a
@@ -161,7 +162,7 @@
 		hover:scale-110 hover:text-indigo-700
 		dark:text-gray-100 dark:hover:text-indigo-400"
 					>
-						Log in
+						{message.logInAsPlainText()}
 					</a>
 				{/if}
 
@@ -194,7 +195,7 @@
 						class="rounded-lg px-2 py-1.5 text-gray-700 transition
 	hover:scale-110 hover:text-indigo-700
 	dark:text-gray-300 dark:hover:text-indigo-400"
-						onclick={() => (mobileOpen = false)}>About</a
+						onclick={() => (mobileOpen = false)}>{message.aboutAsPlainText()}</a
 					>
 				</li>
 				<li>
@@ -203,7 +204,7 @@
 						class="rounded-lg px-2 py-1.5 text-gray-700 transition
 	hover:scale-110 hover:text-indigo-700
 	dark:text-gray-300 dark:hover:text-indigo-400"
-						onclick={() => (mobileOpen = false)}>Reviews</a
+						onclick={() => (mobileOpen = false)}>{message.reviewsAsPlainText()}</a
 					>
 				</li>
 				<li>
@@ -212,7 +213,7 @@
 						class="rounded-lg px-2 py-1.5 text-gray-700 transition
 	hover:scale-110 hover:text-indigo-700
 	dark:text-gray-300 dark:hover:text-indigo-400"
-						onclick={() => (mobileOpen = false)}>Book Appointment</a
+						onclick={() => (mobileOpen = false)}>{message.bookAppointmentAsPlainText()}</a
 					>
 				</li>
 
@@ -223,7 +224,7 @@
 							class="rounded-lg px-2 py-1.5 text-gray-700 transition
 	hover:scale-110 hover:text-indigo-700
 	dark:text-gray-300 dark:hover:text-indigo-400"
-							onclick={() => (mobileOpen = false)}>Manage</a
+							onclick={() => (mobileOpen = false)}>{message.manageAsPlainText()}</a
 						>
 					</li>
 				{/if}
@@ -241,7 +242,7 @@
 								mobileOpen = false;
 							}}
 						>
-							Log out
+							{message.logOutAsPlainText()}
 						</button>
 					{:else}
 						<a
@@ -252,7 +253,7 @@
 	dark:text-gray-100 dark:hover:text-indigo-400"
 							onclick={() => (mobileOpen = false)}
 						>
-							Log in
+							{message.logInAsPlainText()}
 						</a>
 					{/if}
 				</li>

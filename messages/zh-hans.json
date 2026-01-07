@@ -1,0 +1,58 @@
+{
+	"$schema": "https://inlang.com/schema/inlang-message-format",
+
+	"orgName": "幸福家庭",
+	"orgAbbreviation": "幸福家庭",
+
+	"aboutAsPlainText": "关于我们",
+	"reviewsAsPlainText": "评价",
+	"bookAppointmentAsPlainText": "预约",
+	"logInAsPlainText": "登录",
+	"logOutAsPlainText": "退出登录",
+	"manageAsPlainText": "管理",
+	"getStartedAsPlainText": "开始使用",
+	"contactAsPlainText": "联系我们",
+	"servicesAsPlainText": "服务项目",
+
+	"homeMassageCardTitle": "幸福家庭按摩",
+	"homeMassageCardShortDesc": "预约服务、查看项目、管理门店。",
+	"homeMassageCardLongDesc": "提供放松型与理疗型按摩服务，价格透明，预约便捷 —— 专为家庭和忙碌生活打造。",
+	"homeMassageCardGoToText": "了解更多",
+
+	"homeFarmCardTitle": "幸福家庭农场",
+	"homeFarmCardShortDesc": "探索我们的农场产品、服务及更多信息",
+	"homeFarmCardLongDesc": "查看当季产品，浏览农场服务，并了解取货与配送方式",
+	"homeFarmCardGoToText": "了解更多",
+
+	"farmHomeSectionOneHeader": "从今天开始，让身体感觉更轻松。",
+	"farmHomeSectionOneDesc": "为缓解压力、促进肌肉恢复和长期健康而设计的个性化按摩理疗。几分钟完成预约，轻松离开。",
+	"farmHomeSectionOneBubbleOneTitle": "持证理疗师",
+	"farmHomeSectionOneBubbleOneDesc": "经验丰富，以客户为中心的专业护理。",
+	"farmHomeSectionOneBubbleTwoTitle": "量身定制",
+	"farmHomeSectionOneBubbleTwoDesc": "按摩力度与重点部位由您决定。",
+	"farmHomeSectionOneBubbleThreeTitle": "轻松预约",
+	"farmHomeSectionOneBubbleThreeDesc": "快速安排，价格清晰透明。",
+
+	"farmHomeSectionTwoHeader": "认识我们",
+	"farmHomeSectionTwoDesc": "我们创立这家工作室的初衷很简单：帮助人们在生活中减少疼痛，提升舒适感。结合循证理疗方法与宁静温馨的环境，让您真正放松身心。",
+	"farmHomeSectionTwoListItemOne": "以客户为主导：",
+	"farmHomeSectionTwoListItemOneDesc": "您告诉我们需求，我们为您制定方案。",
+	"farmHomeSectionTwoListItemTwo": "舒适的环境：",
+	"farmHomeSectionTwoListItemTwoDesc": "温暖灯光、安静空间、不赶时间。",
+	"farmHomeSectionTwoListItemThree": "真实可感的效果：",
+	"farmHomeSectionTwoListItemThreeDesc": "专注缓解不适、提升活动度与恢复能力。",
+
+	"farmHomeSectionThreeDesc": "选择按摩时长，我们将根据您的目标调整力度与手法。",
+	"farmHomeSectionThreeBubbleOneTitle": "放松按摩",
+	"farmHomeSectionThreeBubbleOneDesc": "舒缓神经系统，减轻压力，深度放松。",
+	"farmHomeSectionThreeBubbleTwoTitle": "深层组织按摩",
+	"farmHomeSectionThreeBubbleTwoDesc": "针对紧绷肌肉，精准而有力。",
+	"farmHomeSectionThreeBubbleThreeTitle": "运动与恢复",
+	"farmHomeSectionThreeBubbleThreeDesc": "支持训练、恢复与身体灵活度。",
+	"farmHomeSectionThreeBubbleFourTitle": "颈肩重点护理",
+	"farmHomeSectionThreeBubbleFourDesc": "非常适合久坐办公导致的紧张与头痛。",
+
+	"farmHomeSectionFourPhoneNumber": "+1 (555) 123-4567",
+	"farmHomeSectionFourEmail": "hello@example.com",
+	"farmHomeSectionFourAddress": "加拿大 安大略省 多伦多市 健康大道123号"
+}

@@ -1,0 +1,59 @@
+{
+	"$schema": "https://inlang.com/schema/inlang-message-format",
+
+	"orgName": "Happy Family",
+	"orgAbbreviation": "HF",
+
+	"aboutAsPlainText": "About",
+	"reviewsAsPlainText": "Reviews",
+	"bookAppointmentAsPlainText": "Book Appointment",
+	"logInAsPlainText": "Log In",
+	"logOutAsPlainText": "Log Out",
+	"manageAsPlainText": "Manage",
+	"getStartedAsPlainText": "Get Started",
+	"contactAsPlainText": "Contact",
+	"servicesAsPlainText": "Services",
+
+	"homeMassageCardTitle": "Happy Family Massage",
+	"homeMassageCardShortDesc": "Book appointments, view services, and manage locations.",
+	"homeMassageCardLongDesc": "Choose from relaxing or therapeutic sessions, transparent pricing, and convenient booking — designed for families and busy schedules.",
+	"homeMassageCardGoToText": "Learn More",
+
+	"homeFarmCardTitle": "Happy Family Farm",
+	"homeFarmCardShortDesc": "Explore products, services and more about our farm",
+	"homeFarmCardLongDesc": "See what's in season, browse products and services, and learn more about pickups and dropoffs",
+	"homeFarmCardGoToText": "Learn More",
+
+	"farmHomeSectionOneHeader": "Feel better in your body — starting today.",
+	"farmHomeSectionOneDesc": "Personalized massage therapy designed for stress relief, muscle recovery, and long-term wellness. Book in minutes and walk out lighter.",
+	"farmHomeSectionOneBubbleOneTitle": "Licensed therapists",
+	"farmHomeSectionOneBubbleOneDesc": "Experienced, client-first care.",
+	"farmHomeSectionOneBubbleTwoTitle": "Tailored sessions",
+	"farmHomeSectionOneBubbleTwoDesc": "Pressure and focus areas you choose.",
+	"farmHomeSectionOneBubbleThreeTitle": "Easy booking",
+	"farmHomeSectionOneBubbleThreeDesc": "Fast scheduling, clear pricing.",
+
+	"farmHomeSectionTwoHeader": "Get to know us!",
+	"farmHomeSectionTwoDesc": "We started this studio with one simple goal: help people move through life with less pain and more ease. Our approach blends evidence-informed techniques with a calm, welcoming space — so you can truly exhale.",
+	"farmHomeSectionTwoListItemOne": "Client-led sessions: ",
+	"farmHomeSectionTwoListItemOneDesc": "you tell us what you need, we tailor the plan.",
+	"farmHomeSectionTwoListItemTwo": "Comfortable environment: ",
+	"farmHomeSectionTwoListItemTwoDesc": "warm lighting, quiet rooms, no rush.",
+	"farmHomeSectionTwoListItemThree": "Results you can feel: ",
+	"farmHomeSectionTwoListItemThreeDesc": "focus on relief, mobility, and recovery.",
+
+	"farmHomeSectionThreeDesc": "Choose a session length, then we’ll customize pressure and technique based on your goals.",
+	"farmHomeSectionThreeBubbleOneTitle": "Relaxation Massage",
+	"farmHomeSectionThreeBubbleOneDesc": "Calm the nervous system, reduce stress, and unwind.",
+	"farmHomeSectionThreeBubbleTwoTitle": "Deep Tissue",
+	"farmHomeSectionThreeBubbleTwoDesc": "Target tight muscles with deeper pressure and precision.",
+	"farmHomeSectionThreeBubbleThreeTitle": "Sports & Recovery",
+	"farmHomeSectionThreeBubbleThreeDesc": "Support training, recovery, and mobility.",
+	"farmHomeSectionThreeBubbleFourTitle": "Neck & Shoulder Focus",
+	"farmHomeSectionThreeBubbleFourDesc": "Perfect for desk work tension and headaches.",
+
+	"farmHomeSectionFourPhoneNumber": "+1 (555) 123-4567",
+	"farmHomeSectionFourEmail": "hello@example.com",
+	"farmHomeSectionFourAddress": "123 Wellness Ave, Toronto, ON"
+
+}

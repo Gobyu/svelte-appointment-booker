@@ -1,12 +1,12 @@
 <script lang="ts">
+	import { locales, localizeHref } from '$lib/paraglide/runtime';
 	import '../app.css';
 	import favicon from '$lib/assets/favicon.svg';
-
 	import MassageNavbar from '$lib/components/massage-navbar.svelte';
 	import FarmNavbar from '$lib/components/farm-navbar.svelte';
 	import DefaultNavbar from '$lib/components/default-navbar.svelte';
-
 	import { page } from '$app/state';
+
 	const data = $derived(page.data);
 
 	// hostname like: massage.example.com, farm.example.com, example.com
@@ -16,9 +16,7 @@
 	const pathname = $derived(page.url.pathname);
 
 	const isMassage = $derived(hostname.startsWith('massage.') || pathname.startsWith('/massage'));
-
 	const isFarm = $derived(hostname.startsWith('farm.') || pathname.startsWith('/farm'));
-
 	const { children } = $props();
 </script>
 
@@ -37,9 +35,16 @@
 {:else if isFarm}
 	<FarmNavbar orgName="Happy Family Farm" user={data.user} />
 {:else}
-	<DefaultNavbar orgName="Happy Family"/>
+	<DefaultNavbar orgName="Happy Family" />
 {/if}
 
 <div class="min-h-dvh bg-white text-gray-900 dark:bg-zinc-950 dark:text-gray-100">
 	{@render children?.()}
+</div>
+<div style="display:none">
+	{#each locales as locale}
+		<a href={localizeHref(page.url.pathname, { locale })}>
+			{locale}
+		</a>
+	{/each}
 </div>

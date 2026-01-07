@@ -1,5 +1,10 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import * as message from '$lib/paraglide/messages';
+	import { locales, getLocale } from '$lib/paraglide/runtime';
+
+	console.log('locales:', locales);
+	console.log('locale now:', getLocale());
 
 	type CardKey = 'massage' | 'farm' | null;
 
@@ -15,12 +20,7 @@
 	});
 
 	function handleCardClick(e: MouseEvent, key: Exclude<CardKey, null>) {
-		// Desktop/hover devices: behave like a normal link
 		if (!isTouchLike) return;
-
-		// Touch devices:
-		// 1st tap = open details (don't navigate)
-		// 2nd tap on same card = navigate
 		if (openCard !== key) {
 			e.preventDefault();
 			openCard = key;
@@ -29,7 +29,7 @@
 </script>
 
 <svelte:head>
-	<title>Happy Family</title>
+	<title>{message.orgName()}</title>
 	<meta name="description" content="Choose a destination: Massage or Farm." />
 </svelte:head>
 
@@ -53,11 +53,11 @@
 				class="grid h-12 w-12 place-items-center rounded-2xl border border-slate-200 bg-slate-50 font-extrabold tracking-wide text-slate-900 shadow-sm dark:border-white/10 dark:bg-white/5 dark:text-slate-100"
 				aria-hidden="true"
 			>
-				HF
+				{message.orgAbbreviation()}
 			</div>
 
 			<div>
-				<h1 class="text-2xl font-semibold tracking-tight sm:text-3xl">Happy Family</h1>
+				<h1 class="text-2xl font-semibold tracking-tight sm:text-3xl">{message.orgName()}</h1>
 			</div>
 		</header>
 
@@ -84,10 +84,8 @@
 				</div>
 
 				<div class="relative text-white">
-					<h2 class="mt-4 text-xl font-semibold">Happy Family Massage</h2>
-					<p class="mt-2 text-sm leading-relaxed">
-						Book appointments, view services, and manage locations.
-					</p>
+					<h2 class="mt-4 text-xl font-semibold">{message.homeMassageCardTitle()}</h2>
+					<p class="mt-2 text-sm leading-relaxed">{message.homeMassageCardShortDesc()}</p>
 
 					<!-- Expanding details -->
 					<div
@@ -97,14 +95,11 @@
 							group-hover/massage:max-h-28 group-hover/massage:opacity-100
 							{openCard === 'massage' ? 'max-h-28 opacity-100' : ''}"
 					>
-						<p class="text-sm leading-relaxed">
-							Choose from relaxing or therapeutic sessions, transparent pricing, and convenient
-							booking — designed for families and busy schedules.
-						</p>
+						<p class="text-sm leading-relaxed">{message.homeMassageCardLongDesc()}</p>
 					</div>
 
 					<div class="mt-6 flex items-center justify-between border-t border-white/50 pt-4">
-						<span class="text-sm font-medium">Go to Massage</span>
+						<span class="text-sm font-medium">{message.homeMassageCardGoToText()}</span>
 						<span class="text-lg transition group-hover/massage:translate-x-0.5">→</span>
 					</div>
 				</div>
@@ -130,9 +125,9 @@
 				</div>
 
 				<div class="relative text-white">
-					<h2 class="mt-4 text-xl font-semibold">Happy Family Farm</h2>
+					<h2 class="mt-4 text-xl font-semibold">{message.homeFarmCardTitle()}</h2>
 					<p class="mt-2 text-sm leading-relaxed">
-						Explore products, farm updates, and seasonal availability.
+						{message.homeFarmCardShortDesc()}
 					</p>
 
 					<!-- Expanding details -->
@@ -144,13 +139,12 @@
 							{openCard === 'farm' ? 'max-h-28 opacity-100' : ''}"
 					>
 						<p class="text-sm leading-relaxed">
-							See what’s in season, browse products and services, and learn about pickups — fresh
-							updates and local availability in one place.
+							{message.homeFarmCardLongDesc()}
 						</p>
 					</div>
 
 					<div class="mt-6 flex items-center justify-between border-t border-white/50 pt-4">
-						<span class="text-sm font-medium">Go to Farm</span>
+						<span class="text-sm font-medium">{message.homeFarmCardGoToText()}</span>
 						<span class="text-lg transition group-hover/farm:translate-x-0.5">→</span>
 					</div>
 				</div>

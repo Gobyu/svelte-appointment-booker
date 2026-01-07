@@ -24,3 +24,7 @@ vite.config.ts.timestamp-*
 
 .vercel
 .env*.local
+
+# Paraglide
+src/lib/paraglide
+project.inlang/cache/
