@@ -1,3 +1,33 @@
+<script lang="ts">
+	import { onMount } from 'svelte';
+
+	type CardKey = 'massage' | 'farm' | null;
+
+	let openCard: CardKey = null;
+	let isTouchLike = false;
+
+	onMount(() => {
+		const mq = window.matchMedia('(hover: none), (pointer: coarse)');
+		const sync = () => (isTouchLike = mq.matches);
+		sync();
+		mq.addEventListener?.('change', sync);
+		return () => mq.removeEventListener?.('change', sync);
+	});
+
+	function handleCardClick(e: MouseEvent, key: Exclude<CardKey, null>) {
+		// Desktop/hover devices: behave like a normal link
+		if (!isTouchLike) return;
+
+		// Touch devices:
+		// 1st tap = open details (don't navigate)
+		// 2nd tap on same card = navigate
+		if (openCard !== key) {
+			e.preventDefault();
+			openCard = key;
+		}
+	}
+</script>
+
 <svelte:head>
 	<title>Happy Family</title>
 	<meta name="description" content="Choose a destination: Massage or Farm." />
@@ -37,6 +67,9 @@
 				href="/massage/home"
 				style="background-image: url('/images/massage_card_bg.jpg');"
 				class="group/massage relative overflow-hidden rounded-3xl bg-cover bg-center p-6 shadow-sm transition hover:-translate-y-0.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70"
+				aria-expanded={openCard === 'massage'}
+				aria-controls="massage-details"
+				onclick={(e) => handleCardClick(e, 'massage')}
 			>
 				<!-- Overlay (uses group hover, not hover: on itself) -->
 				<div
@@ -56,21 +89,23 @@
 						Book appointments, view services, and manage locations.
 					</p>
 
-					<div class="mt-6 flex items-center justify-between border-t border-white/50 pt-4">
-						<span class="text-sm font-medium">Go to Massage</span>
-						<span class="text-lg transition group-hover/massage:translate-x-0.5">→</span>
-					</div>
-
 					<!-- Expanding details -->
 					<div
+						id="massage-details"
 						class="mt-3 max-h-0 overflow-hidden opacity-0 transition-all duration-300 ease-out
 							group-focus-within/massage:max-h-28 group-focus-within/massage:opacity-100
-							group-hover/massage:max-h-28 group-hover/massage:opacity-100"
+							group-hover/massage:max-h-28 group-hover/massage:opacity-100
+							{openCard === 'massage' ? 'max-h-28 opacity-100' : ''}"
 					>
 						<p class="text-sm leading-relaxed">
 							Choose from relaxing or therapeutic sessions, transparent pricing, and convenient
 							booking — designed for families and busy schedules.
 						</p>
+					</div>
+
+					<div class="mt-6 flex items-center justify-between border-t border-white/50 pt-4">
+						<span class="text-sm font-medium">Go to Massage</span>
+						<span class="text-lg transition group-hover/massage:translate-x-0.5">→</span>
 					</div>
 				</div>
 			</a>
@@ -80,6 +115,9 @@
 				href="/farm/home"
 				style="background-image: url('/images/farm_card_bg_2.jpg');"
 				class="group/farm relative overflow-hidden rounded-3xl bg-cover bg-center p-6 shadow-sm transition hover:-translate-y-0.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/70"
+				aria-expanded={openCard === 'farm'}
+				aria-controls="farm-details"
+				onclick={(e) => handleCardClick(e, 'farm')}
 			>
 				<!-- Overlay -->
 				<div class="pointer-events-none absolute -inset-px bg-black/30"></div>
@@ -97,21 +135,23 @@
 						Explore products, farm updates, and seasonal availability.
 					</p>
 
-					<div class="mt-6 flex items-center justify-between border-t border-white/50 pt-4">
-						<span class="text-sm font-medium">Go to Farm</span>
-						<span class="text-lg transition group-hover/farm:translate-x-0.5">→</span>
-					</div>
-
 					<!-- Expanding details -->
 					<div
+						id="farm-details"
 						class="mt-3 max-h-0 overflow-hidden opacity-0 transition-all duration-300 ease-out
 							group-focus-within/farm:max-h-28 group-focus-within/farm:opacity-100
-							group-hover/farm:max-h-28 group-hover/farm:opacity-100"
+							group-hover/farm:max-h-28 group-hover/farm:opacity-100
+							{openCard === 'farm' ? 'max-h-28 opacity-100' : ''}"
 					>
 						<p class="text-sm leading-relaxed">
 							See what’s in season, browse products and services, and learn about pickups — fresh
 							updates and local availability in one place.
 						</p>
+					</div>
+
+					<div class="mt-6 flex items-center justify-between border-t border-white/50 pt-4">
+						<span class="text-sm font-medium">Go to Farm</span>
+						<span class="text-lg transition group-hover/farm:translate-x-0.5">→</span>
 					</div>
 				</div>
 			</a>
