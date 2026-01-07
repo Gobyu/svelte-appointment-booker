@@ -1,7 +1,13 @@
 <script lang="ts">
 	import { page } from '$app/state';
 	import * as message from '$lib/paraglide/messages';
-	import { deLocalizeUrl, setLocale, getLocale, locales } from '$lib/paraglide/runtime';
+	import {
+		deLocalizeUrl,
+		setLocale,
+		getLocale,
+		locales,
+		localizeHref
+	} from '$lib/paraglide/runtime';
 
 	const props = $props<{ orgName?: string }>();
 	const orgName = $derived(props.orgName ?? 'YourOrg');
@@ -16,7 +22,11 @@
 
 	// Current locale (Paraglide resolves it based on your strategy)
 	const currentLocale = $derived(getLocale());
-
+	function switchLocale(locale: string) {
+		const basePath = deLocalizeUrl(page.url).pathname;
+		// Hard navigation => full reload => translations update
+		window.location.assign(localizeHref(basePath, { locale }));
+	}
 	// Labels you want
 	const localeLabel: Record<string, string> = {
 		en: 'EN',
@@ -165,7 +175,7 @@
 										class="flex w-full items-center justify-between px-3 py-2 text-left text-sm text-gray-800 hover:bg-gray-50 dark:text-gray-100 dark:hover:bg-gray-800"
 										onclick={() => {
 											langOpen = false;
-											setLocale(opt.locale);
+											switchLocale(opt.locale);
 										}}
 									>
 										<span>{opt.label}</span>
@@ -205,7 +215,7 @@
 						class="rounded-lg px-2 py-1.5 text-gray-700 transition hover:scale-110 hover:text-indigo-700 dark:text-gray-300 dark:hover:text-indigo-400"
 						onclick={() => (mobileOpen = false)}
 					>
-						About
+						{message.aboutAsPlainText()}
 					</a>
 				</li>
 			</ul>
