@@ -10,8 +10,6 @@
 	} from '$lib/paraglide/runtime';
 
 	const props = $props<{ orgName?: string }>();
-	const orgName = $derived(props.orgName ?? 'YourOrg');
-
 	// Use the *de-localized* path for active-link checks (works across /en/... /fr/... etc.)
 	const basePath = $derived(deLocalizeUrl(page.url).pathname);
 	const isActive = (href: string) => basePath === href;
@@ -20,13 +18,8 @@
 	let langOpen = $state(false);
 	let langMenuEl = $state<HTMLElement | null>(null);
 
-	// Current locale (Paraglide resolves it based on your strategy)
 	const currentLocale = $derived(getLocale());
-	function switchLocale(locale: string) {
-		const basePath = deLocalizeUrl(page.url).pathname;
-		// Hard navigation => full reload => translations update
-		window.location.assign(localizeHref(basePath, { locale }));
-	}
+
 	// Labels you want
 	const localeLabel: Record<string, string> = {
 		en: 'EN',
@@ -42,6 +35,14 @@
 			label: localeLabel[l] ?? l.toUpperCase()
 		}))
 	);
+
+	// Persist locale selection (cookie/localStorage strategies) AND navigate to localized URL.
+	function switchLocale(locale: (typeof locales)[number]) {
+		const target = localizeHref(basePath, { locale });
+		void Promise.resolve(setLocale(locale, { reload: false })).finally(() => {
+			window.location.assign(target);
+		});
+	}
 
 	$effect(() => {
 		if (typeof document === 'undefined') return;
@@ -95,8 +96,9 @@
 >
 	<div class="mx-auto max-w-6xl px-4">
 		<div class="flex h-14 items-center justify-between">
+			<!-- ✅ localized -->
 			<a
-				href="/"
+				href={localizeHref('/')}
 				class="text-xl font-bold tracking-tight text-gray-900 transition hover:scale-110 hover:text-indigo-600 dark:text-gray-100 dark:hover:text-indigo-400"
 			>
 				{message.orgName()}
@@ -128,8 +130,9 @@
 			</button>
 
 			<div class="hidden items-center gap-6 md:flex">
+				<!-- ✅ localized -->
 				<a
-					href="/about"
+					href={localizeHref('/about')}
 					class="rounded-xl px-4 py-2 text-sm font-medium text-gray-800 transition hover:scale-110 hover:text-indigo-700 dark:text-gray-100 dark:hover:text-indigo-400"
 					class:font-semibold={isActive('/about')}
 					aria-current={isActive('/about') ? 'page' : undefined}
@@ -137,6 +140,7 @@
 					{message.aboutAsPlainText()}
 				</a>
 			</div>
+
 			<div class="flex items-center gap-2">
 				<!-- Language dropdown -->
 				<div class="relative" bind:this={langMenuEl}>
@@ -179,7 +183,7 @@
 										}}
 									>
 										<span>{opt.label}</span>
-										{#if opt.locale === getLocale()}
+										{#if opt.locale === currentLocale}
 											<span class="text-xs opacity-70">✓</span>
 										{/if}
 									</button>
@@ -210,8 +214,9 @@
 		<div class="border-t border-gray-200 md:hidden dark:border-gray-700">
 			<ul class="mx-auto flex max-w-6xl flex-col gap-2 px-4 py-3">
 				<li>
+					<!-- ✅ localized -->
 					<a
-						href="/about"
+						href={localizeHref('/about')}
 						class="rounded-lg px-2 py-1.5 text-gray-700 transition hover:scale-110 hover:text-indigo-700 dark:text-gray-300 dark:hover:text-indigo-400"
 						onclick={() => (mobileOpen = false)}
 					>
