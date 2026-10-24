@@ -1,75 +1,19 @@
 <script lang="ts">
 	import { page } from '$app/state';
+	import { goto, invalidateAll } from '$app/navigation';
 	import * as message from '$lib/paraglide/messages';
-	import {
-		deLocalizeUrl,
-		setLocale,
-		getLocale,
-		locales,
-		localizeHref
-	} from '$lib/paraglide/runtime';
-	type Locale = (typeof locales)[number];
-	const props = $props<{ orgName?: string }>();
-	// Use the *de-localized* path for active-link checks (works across /en/... /fr/... etc.)
-	const basePath = $derived(deLocalizeUrl(page.url).pathname);
-	const isActive = (href: string) => basePath === href;
 
-	// --- Language dropdown ---
-	let langOpen = $state(false);
-	let langMenuEl = $state<HTMLElement | null>(null);
+	const props = $props<{
+		orgName?: string;
+		user?: App.Locals['user'];
+	}>();
 
-	const currentLocale = $derived(getLocale());
+	const orgName = $derived(props.orgName ?? 'YourOrg');
+	const user = $derived(props.user ?? null);
 
-	// Labels you want
-	const localeLabel: Record<string, string> = {
-		en: 'EN',
-		fr: 'FR',
-		'zh-Hans': '简体中文',
-		'zh-Hant': '繁体中文'
-	};
+	const currentPath = $derived(page.url.pathname);
+	const isActive = (href: string) => currentPath === href;
 
-	// Only show locales that are actually configured in Paraglide (from `locales`)
-	const langOptions = $derived(
-		locales.map((l) => ({
-			locale: l,
-			label: localeLabel[l] ?? l.toUpperCase()
-		}))
-	);
-
-	// Persist locale selection (cookie/localStorage strategies) AND navigate to localized URL.
-	async function switchLocale(locale: Locale) {
-		const target = localizeHref(basePath, { locale });
-
-		// Persist choice (cookie/localStorage strategies)
-		await Promise.resolve(setLocale(locale, { reload: false }));
-
-		console.log('current after setLocale:', getLocale());
-
-		// Now navigate (last line)
-		window.location.assign(target);
-	}
-
-	$effect(() => {
-		if (typeof document === 'undefined') return;
-		if (!langOpen) return;
-
-		const onClick = (e: MouseEvent) => {
-			const t = e.target;
-			if (t instanceof Node && langMenuEl && !langMenuEl.contains(t)) langOpen = false;
-		};
-		const onKey = (e: KeyboardEvent) => {
-			if (e.key === 'Escape') langOpen = false;
-		};
-
-		document.addEventListener('mousedown', onClick);
-		document.addEventListener('keydown', onKey);
-		return () => {
-			document.removeEventListener('mousedown', onClick);
-			document.removeEventListener('keydown', onKey);
-		};
-	});
-
-	// --- your existing state ---
 	let mobileOpen = $state(false);
 	let theme = $state<'light' | 'dark'>(
 		typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches
@@ -94,6 +38,14 @@
 	function toggleTheme() {
 		theme = theme === 'light' ? 'dark' : 'light';
 	}
+
+	async function logout() {
+		try {
+			await fetch('/auth/logout', { method: 'POST' });
+		} catch {}
+		await invalidateAll();
+		await goto('/', { replaceState: true });
+	}
 </script>
 
 <nav
@@ -101,14 +53,12 @@
 >
 	<div class="mx-auto max-w-6xl px-4">
 		<div class="flex h-14 items-center justify-between">
-			<!-- ✅ localized -->
-			<a
-				href={localizeHref('/')}
-				class="text-xl font-bold tracking-tight text-gray-900 transition hover:scale-110 hover:text-indigo-600 dark:text-gray-100 dark:hover:text-indigo-400"
-			>
-				{message.orgName()}
+			<a href="/" class="rounded-xl px-4 py-2 text-sm font-medium text-gray-800
+			transition
+			hover:scale-110 hover:text-indigo-700
+			dark:text-gray-100 dark:hover:text-indigo-400">
+					Happy Family Massage
 			</a>
-
 			<button
 				class="ml-2 inline-flex items-center justify-center rounded-md p-2 hover:bg-gray-100 md:hidden dark:hover:bg-gray-800"
 				aria-label="Toggle navigation"
@@ -135,74 +85,89 @@
 			</button>
 
 			<div class="hidden items-center gap-6 md:flex">
-				<!-- ✅ localized -->
 				<a
-					href={localizeHref('/about')}
-					class="rounded-xl px-4 py-2 text-sm font-medium text-gray-800 transition hover:scale-110 hover:text-indigo-700 dark:text-gray-100 dark:hover:text-indigo-400"
+					href="/about"
+					class="rounded-xl px-4 py-2 text-sm font-medium text-gray-800
+			transition
+			hover:scale-110 hover:text-indigo-700
+			dark:text-gray-100 dark:hover:text-indigo-400"
 					class:font-semibold={isActive('/about')}
 					aria-current={isActive('/about') ? 'page' : undefined}
 				>
 					{message.aboutAsPlainText()}
 				</a>
+
+				<a
+					href="/reviews"
+					class="rounded-xl px-4 py-2 text-sm font-medium text-gray-800
+			transition
+			hover:scale-110 hover:text-indigo-700
+			dark:text-gray-100 dark:hover:text-indigo-400"
+					class:font-semibold={isActive('/reviews')}
+					aria-current={isActive('/reviews') ? 'page' : undefined}
+				>
+					{message.reviewsAsPlainText()}
+				</a>
+
+				<a
+					href="/book-appointment"
+					class="rounded-xl px-4 py-2 text-sm font-medium text-gray-800
+			transition
+			hover:scale-110 hover:text-indigo-700
+			dark:text-gray-100 dark:hover:text-indigo-400"
+					class:font-semibold={isActive('/book-appointment')}
+					aria-current={isActive('/book-appointment') ? 'page' : undefined}
+				>
+					{message.bookAppointmentAsPlainText()}
+				</a>
+
+				{#if user?.role === 'admin'}
+					<a
+						href="/manange"
+						class="rounded-xl px-4 py-2 text-sm font-medium text-gray-800
+				transition
+				hover:scale-110 hover:text-indigo-700
+				dark:text-gray-100 dark:hover:text-indigo-400"
+						class:font-semibold={isActive('/manange')}
+						aria-current={isActive('/manange') ? 'page' : undefined}
+					>
+						{message.manageAsPlainText()}
+					</a>
+				{/if}
 			</div>
 
-			<div class="flex items-center gap-2">
-				<!-- Language dropdown -->
-				<div class="relative" bind:this={langMenuEl}>
+			<div class="flex items-center gap-3">
+				{#if user}
 					<button
 						type="button"
-						class="inline-flex h-10 items-center gap-2 rounded-full border border-gray-200 bg-white/70 px-3 text-sm font-semibold text-gray-800 shadow-sm backdrop-blur transition hover:scale-110 hover:bg-white dark:border-gray-700 dark:bg-gray-900/70 dark:text-gray-100"
-						aria-label="Change language"
-						aria-haspopup="menu"
-						aria-expanded={langOpen}
-						onclick={() => (langOpen = !langOpen)}
+						class="rounded-xl px-4 py-2 text-sm font-medium text-gray-800
+		transition
+		hover:scale-110 hover:text-indigo-700
+		dark:text-gray-100 dark:hover:text-indigo-400"
+						onclick={logout}
 					>
-						<span>{localeLabel[currentLocale] ?? currentLocale.toUpperCase()}</span>
-						<svg
-							class="h-4 w-4 opacity-70"
-							viewBox="0 0 20 20"
-							fill="currentColor"
-							aria-hidden="true"
-						>
-							<path
-								fill-rule="evenodd"
-								d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 11.168l3.71-3.94a.75.75 0 1 1 1.08 1.04l-4.24 4.5a.75.75 0 0 1-1.08 0l-4.24-4.5a.75.75 0 0 1 .02-1.06z"
-								clip-rule="evenodd"
-							/>
-						</svg>
+						{message.logOutAsPlainText()}
 					</button>
-
-					{#if langOpen}
-						<div
-							role="menu"
-							class="absolute right-0 mt-2 w-44 overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-lg dark:border-gray-700 dark:bg-gray-900"
-						>
-							<div class="py-1">
-								{#each langOptions as opt}
-									<button
-										type="button"
-										class="flex w-full items-center justify-between px-3 py-2 text-left text-sm text-gray-800 hover:bg-gray-50 dark:text-gray-100 dark:hover:bg-gray-800"
-										onclick={() => {
-											langOpen = false;
-											switchLocale(opt.locale);
-										}}
-									>
-										<span>{opt.label}</span>
-										{#if opt.locale === currentLocale}
-											<span class="text-xs opacity-70">✓</span>
-										{/if}
-									</button>
-								{/each}
-							</div>
-						</div>
-					{/if}
-				</div>
+				{:else}
+					<a
+						href="/login"
+						class="rounded-xl px-4 py-2 text-sm font-medium text-gray-800
+		transition
+		hover:scale-110 hover:text-indigo-700
+		dark:text-gray-100 dark:hover:text-indigo-400"
+					>
+						{message.logInAsPlainText()}
+					</a>
+				{/if}
 
 				<button
 					type="button"
 					aria-label="Toggle theme"
 					title="Toggle theme"
-					class="grid h-10 w-10 place-items-center rounded-full text-lg leading-none transition hover:scale-110"
+					class="grid h-10 w-10 place-items-center rounded-full
+		text-lg leading-none
+		transition
+		hover:scale-110"
 					onclick={toggleTheme}
 				>
 					{#if theme === 'light'}
@@ -219,14 +184,72 @@
 		<div class="border-t border-gray-200 md:hidden dark:border-gray-700">
 			<ul class="mx-auto flex max-w-6xl flex-col gap-2 px-4 py-3">
 				<li>
-					<!-- ✅ localized -->
 					<a
-						href={localizeHref('/about')}
-						class="rounded-lg px-2 py-1.5 text-gray-700 transition hover:scale-110 hover:text-indigo-700 dark:text-gray-300 dark:hover:text-indigo-400"
-						onclick={() => (mobileOpen = false)}
+						href="/about"
+						class="rounded-lg px-2 py-1.5 text-gray-700 transition
+	hover:scale-110 hover:text-indigo-700
+	dark:text-gray-300 dark:hover:text-indigo-400"
+						onclick={() => (mobileOpen = false)}>{message.aboutAsPlainText()}</a
 					>
-						{message.aboutAsPlainText()}
-					</a>
+				</li>
+				<li>
+					<a
+						href="/reviews"
+						class="rounded-lg px-2 py-1.5 text-gray-700 transition
+	hover:scale-110 hover:text-indigo-700
+	dark:text-gray-300 dark:hover:text-indigo-400"
+						onclick={() => (mobileOpen = false)}>{message.reviewsAsPlainText()}</a
+					>
+				</li>
+				<li>
+					<a
+						href="/book-appointment"
+						class="rounded-lg px-2 py-1.5 text-gray-700 transition
+	hover:scale-110 hover:text-indigo-700
+	dark:text-gray-300 dark:hover:text-indigo-400"
+						onclick={() => (mobileOpen = false)}>{message.bookAppointmentAsPlainText()}</a
+					>
+				</li>
+
+				{#if user?.role === 'admin'}
+					<li>
+						<a
+							href="/manange"
+							class="rounded-lg px-2 py-1.5 text-gray-700 transition
+	hover:scale-110 hover:text-indigo-700
+	dark:text-gray-300 dark:hover:text-indigo-400"
+							onclick={() => (mobileOpen = false)}>{message.manageAsPlainText()}</a
+						>
+					</li>
+				{/if}
+
+				<li class="mt-1 flex items-center justify-between">
+					{#if user}
+						<button
+							type="button"
+							class="w-full rounded-lg px-4 py-2 text-left text-sm font-medium text-gray-800
+	transition
+	hover:scale-110 hover:text-indigo-700
+	dark:text-gray-100 dark:hover:text-indigo-400"
+							onclick={async () => {
+								await logout();
+								mobileOpen = false;
+							}}
+						>
+							{message.logOutAsPlainText()}
+						</button>
+					{:else}
+						<a
+							href="/login"
+							class="w-full rounded-lg px-4 py-2 text-left text-sm font-medium text-gray-800
+	transition
+	hover:scale-110 hover:text-indigo-700
+	dark:text-gray-100 dark:hover:text-indigo-400"
+							onclick={() => (mobileOpen = false)}
+						>
+							{message.logInAsPlainText()}
+						</a>
+					{/if}
 				</li>
 			</ul>
 		</div>

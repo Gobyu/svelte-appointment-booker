@@ -1,155 +1,272 @@
+<!-- src/routes/+page.svelte -->
 <script lang="ts">
-	import { onMount } from 'svelte';
 	import * as message from '$lib/paraglide/messages';
-	import { locales, getLocale } from '$lib/paraglide/runtime';
+	const go = (path: string) => {
+		if (typeof window !== 'undefined') window.location.href = path;
+	};
 
-	type CardKey = 'massage' | 'farm' | null;
-
-	let openCard: CardKey = null;
-	let isTouchLike = false;
-
-	onMount(() => {
-		const mq = window.matchMedia('(hover: none), (pointer: coarse)');
-		const sync = () => (isTouchLike = mq.matches);
-		sync();
-		mq.addEventListener?.('change', sync);
-		return () => mq.removeEventListener?.('change', sync);
-	});
-
-	function handleCardClick(e: MouseEvent, key: Exclude<CardKey, null>) {
-		if (!isTouchLike) return;
-		if (openCard !== key) {
-			e.preventDefault();
-			openCard = key;
-		}
-	}
+	const scrollToId = (id: string) => {
+		if (typeof document === 'undefined') return;
+		document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+	};
 </script>
 
-<svelte:head>
-	<title>{message.orgName()}</title>
-	<meta name="description" content="Choose a destination: Massage or Farm." />
-</svelte:head>
+<section class="mx-auto max-w-6xl px-4 py-10">
+	<!-- HERO / INTRO -->
+	<div class="grid items-center gap-8 md:grid-cols-2">
+		<!-- Image left -->
+		<div
+			class="overflow-hidden rounded-3xl border border-gray-200 bg-gray-50 shadow-sm dark:border-zinc-700 dark:bg-zinc-900"
+		>
+			<img
+				src="https://images.unsplash.com/photo-1556228578-0d85b1a4d571?auto=format&fit=crop&w=1400&q=80"
+				alt="Massage and wellness"
+				class="h-[320px] w-full object-cover md:h-[420px]"
+				loading="eager"
+			/>
+		</div>
 
-<main class="min-h-screen bg-white text-slate-900 dark:bg-slate-950 dark:text-slate-100">
-	<!-- Background glows -->
-	<div class="pointer-events-none fixed inset-0 -z-10">
-		<div
-			class="absolute -top-24 left-1/2 h-80 w-[42rem] -translate-x-1/2 rounded-full bg-indigo-400/20 blur-3xl dark:bg-indigo-500/20"
-		></div>
-		<div
-			class="absolute right-[-10rem] bottom-0 h-72 w-72 rounded-full bg-emerald-400/20 blur-3xl dark:bg-emerald-500/15"
-		></div>
-		<div
-			class="absolute bottom-24 left-[-8rem] h-72 w-72 rounded-full bg-amber-300/20 blur-3xl dark:bg-amber-500/10"
-		></div>
-	</div>
+		<!-- Text right -->
+		<div>
+			<h1 class="mt-3 text-4xl font-bold tracking-tight md:text-5xl">
+				{message.farmHomeSectionOneHeader()}
+			</h1>
+			<p class="mt-3 max-w-prose text-gray-600 dark:text-gray-300">
+				{message.farmHomeSectionOneDesc()}
+			</p>
 
-	<div class="mx-auto flex min-h-screen w-full max-w-5xl flex-col px-4 py-10 sm:px-6">
-		<header class="flex items-center gap-4">
-			<div
-				class="grid h-12 w-12 place-items-center rounded-2xl border border-slate-200 bg-slate-50 font-extrabold tracking-wide text-slate-900 shadow-sm dark:border-white/10 dark:bg-white/5 dark:text-slate-100"
-				aria-hidden="true"
-			>
-				{message.orgAbbreviation()}
+			<div class="mt-6 flex flex-wrap gap-3">
+				<button
+					class="rounded-xl bg-blue-600 px-5 py-2.5 font-semibold text-white hover:bg-blue-700"
+					onclick={() => go('/massage/book-appointment')}
+				>
+					{message.getStartedAsPlainText()}
+				</button>
+				<button
+					class="rounded-xl border border-gray-300 px-5 py-2.5 font-semibold hover:bg-gray-50 dark:border-zinc-700 dark:hover:bg-zinc-800"
+					onclick={() => scrollToId('services')}
+				>
+					{message.servicesAsPlainText()}
+				</button>
 			</div>
 
-			<div>
-				<h1 class="text-2xl font-semibold tracking-tight sm:text-3xl">{message.orgName()}</h1>
-			</div>
-		</header>
-
-		<section class="mt-8 grid items-start gap-4 sm:grid-cols-2" aria-label="Destinations">
-			<!-- Massage Card -->
-			<a
-				href="/massage/home"
-				style="background-image: url('/images/massage_card_bg.jpg');"
-				class="group/massage relative overflow-hidden rounded-3xl bg-cover bg-center p-6 shadow-sm transition hover:-translate-y-0.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70"
-				aria-expanded={openCard === 'massage'}
-				aria-controls="massage-details"
-				onclick={(e) => handleCardClick(e, 'massage')}
-			>
-				<!-- Overlay (uses group hover, not hover: on itself) -->
+			<div class="mt-6 grid gap-3 sm:grid-cols-3">
 				<div
-					class="pointer-events-none absolute -inset-px bg-black/50 transition group-hover/massage:bg-black/30"
-				></div>
-
-				<!-- Indigo glow -->
-				<div class="absolute inset-0 opacity-0 transition group-hover/massage:opacity-100">
-					<div
-						class="absolute -top-20 -right-20 h-56 w-56 rounded-full bg-indigo-400/20 blur-3xl dark:bg-indigo-500/20"
-					></div>
-				</div>
-
-				<div class="relative text-white">
-					<h2 class="mt-4 text-xl font-semibold">{message.homeMassageCardTitle()}</h2>
-					<p class="mt-2 text-sm leading-relaxed">{message.homeMassageCardShortDesc()}</p>
-
-					<!-- Expanding details -->
-					<div
-						id="massage-details"
-						class="mt-3 max-h-0 overflow-hidden opacity-0 transition-all duration-300 ease-out
-							group-focus-within/massage:max-h-28 group-focus-within/massage:opacity-100
-							group-hover/massage:max-h-28 group-hover/massage:opacity-100
-							{openCard === 'massage' ? 'max-h-28 opacity-100' : ''}"
-					>
-						<p class="text-sm leading-relaxed">{message.homeMassageCardLongDesc()}</p>
-					</div>
-
-					<div class="mt-6 flex items-center justify-between border-t border-white/50 pt-4">
-						<span class="text-sm font-medium">{message.homeMassageCardGoToText()}</span>
-						<span class="text-lg transition group-hover/massage:translate-x-0.5">→</span>
-					</div>
-				</div>
-			</a>
-
-			<!-- Farm Card -->
-			<a
-				href="/farm/home"
-				style="background-image: url('/images/farm_card_bg_2.jpg');"
-				class="group/farm relative overflow-hidden rounded-3xl bg-cover bg-center p-6 shadow-sm transition hover:-translate-y-0.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/70"
-				aria-expanded={openCard === 'farm'}
-				aria-controls="farm-details"
-				onclick={(e) => handleCardClick(e, 'farm')}
-			>
-				<!-- Overlay -->
-				<div class="pointer-events-none absolute -inset-px bg-black/30"></div>
-
-				<!-- Emerald glow -->
-				<div class="absolute inset-0 opacity-0 transition group-hover/farm:opacity-100">
-					<div
-						class="absolute -top-20 -left-20 h-56 w-56 rounded-full bg-emerald-400/20 blur-3xl dark:bg-emerald-500/20"
-					></div>
-				</div>
-
-				<div class="relative text-white">
-					<h2 class="mt-4 text-xl font-semibold">{message.homeFarmCardTitle()}</h2>
-					<p class="mt-2 text-sm leading-relaxed">
-						{message.homeFarmCardShortDesc()}
+					class="rounded-2xl border border-gray-200 bg-white p-4 text-sm shadow-sm dark:border-zinc-700 dark:bg-zinc-900"
+				>
+					<p class="font-semibold">{message.farmHomeSectionOneBubbleOneTitle()}</p>
+					<p class="mt-1 text-gray-600 dark:text-gray-300">
+						{message.farmHomeSectionOneBubbleOneDesc()}
 					</p>
-
-					<!-- Expanding details -->
-					<div
-						id="farm-details"
-						class="mt-3 max-h-0 overflow-hidden opacity-0 transition-all duration-300 ease-out
-							group-focus-within/farm:max-h-28 group-focus-within/farm:opacity-100
-							group-hover/farm:max-h-28 group-hover/farm:opacity-100
-							{openCard === 'farm' ? 'max-h-28 opacity-100' : ''}"
-					>
-						<p class="text-sm leading-relaxed">
-							{message.homeFarmCardLongDesc()}
-						</p>
-					</div>
-
-					<div class="mt-6 flex items-center justify-between border-t border-white/50 pt-4">
-						<span class="text-sm font-medium">{message.homeFarmCardGoToText()}</span>
-						<span class="text-lg transition group-hover/farm:translate-x-0.5">→</span>
-					</div>
 				</div>
-			</a>
-		</section>
-
-		<footer class="mt-auto pt-10 text-xs text-slate-500 dark:text-slate-400">
-			© {new Date().getFullYear()} Happy Family
-		</footer>
+				<div
+					class="rounded-2xl border border-gray-200 bg-white p-4 text-sm shadow-sm dark:border-zinc-700 dark:bg-zinc-900"
+				>
+					<p class="font-semibold">{message.farmHomeSectionOneBubbleTwoTitle()}</p>
+					<p class="mt-1 text-gray-600 dark:text-gray-300">
+						{message.farmHomeSectionOneBubbleTwoDesc()}
+					</p>
+				</div>
+				<div
+					class="rounded-2xl border border-gray-200 bg-white p-4 text-sm shadow-sm dark:border-zinc-700 dark:bg-zinc-900"
+				>
+					<p class="font-semibold">{message.farmHomeSectionOneBubbleThreeTitle()}</p>
+					<p class="mt-1 text-gray-600 dark:text-gray-300">
+						{message.farmHomeSectionOneBubbleThreeDesc()}
+					</p>
+				</div>
+			</div>
+		</div>
 	</div>
-</main>
+
+	<!-- FOUNDERS -->
+	<div class="mt-14 grid items-center gap-8 md:grid-cols-2">
+		<!-- Text left (alternate) -->
+		<div>
+			<h2 class="text-3xl font-bold tracking-tight">{message.farmHomeSectionTwoHeader()}</h2>
+			<p class="mt-3 max-w-prose text-gray-600 dark:text-gray-300">
+				{message.farmHomeSectionTwoDesc()}
+			</p>
+
+			<ul class="mt-5 grid gap-3">
+				<li class="flex gap-3">
+					<span
+						class="mt-1 inline-flex h-5 w-5 items-center justify-center rounded-full bg-green-600 text-xs text-white"
+						>✓</span
+					>
+					<p class="text-gray-700 dark:text-gray-200">
+						<strong>{message.farmHomeSectionTwoListItemOne()}</strong
+						>{message.farmHomeSectionTwoListItemOneDesc()}
+					</p>
+				</li>
+
+				<li class="flex gap-3">
+					<span
+						class="mt-1 inline-flex h-5 w-5 items-center justify-center rounded-full bg-green-600 text-xs text-white"
+						>✓</span
+					>
+					<p class="text-gray-700 dark:text-gray-200">
+						<strong>{message.farmHomeSectionTwoListItemTwo()}</strong
+						>{message.farmHomeSectionTwoListItemTwoDesc()}
+					</p>
+				</li>
+
+				<li class="flex gap-3">
+					<span
+						class="mt-1 inline-flex h-5 w-5 items-center justify-center rounded-full bg-green-600 text-xs text-white"
+						>✓</span
+					>
+					<p class="text-gray-700 dark:text-gray-200">
+						<strong>{message.farmHomeSectionTwoListItemThree()}</strong
+						>{message.farmHomeSectionTwoListItemThreeDesc()}
+					</p>
+				</li>
+			</ul>
+		</div>
+
+		<!-- Image right -->
+		<div
+			class="overflow-hidden rounded-3xl border border-gray-200 bg-gray-50 shadow-sm dark:border-zinc-700 dark:bg-zinc-900"
+		>
+			<img
+				src="https://images.unsplash.com/photo-1512290923902-8a9f81dc236c?auto=format&fit=crop&w=1400&q=80"
+				alt="Massage studio"
+				class="h-[320px] w-full object-cover md:h-[420px]"
+				loading="lazy"
+			/>
+		</div>
+	</div>
+
+	<!-- SERVICES -->
+	<div id="services" class="mt-14 grid scroll-mt-24 items-center gap-8 md:grid-cols-2">
+		<!-- Image left -->
+		<div
+			class="overflow-hidden rounded-3xl border border-gray-200 bg-gray-50 shadow-sm dark:border-zinc-700 dark:bg-zinc-900"
+		>
+			<img
+				src="https://images.unsplash.com/photo-1544161515-4ab6ce6db874?auto=format&fit=crop&w=1400&q=80"
+				alt="Massage therapy session"
+				class="h-[320px] w-full object-cover md:h-[420px]"
+				loading="lazy"
+			/>
+		</div>
+
+		<!-- Text right -->
+		<div>
+			<h2 class="text-3xl font-bold tracking-tight">{message.servicesAsPlainText()}</h2>
+			<p class="mt-3 max-w-prose text-gray-600 dark:text-gray-300">
+				{message.farmHomeSectionThreeDesc()}
+			</p>
+
+			<div class="mt-5 grid gap-3 sm:grid-cols-2">
+				<div
+					class="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm dark:border-zinc-700 dark:bg-zinc-900"
+				>
+					<p class="font-semibold">{message.farmHomeSectionThreeBubbleOneTitle()}</p>
+					<p class="mt-1 text-sm text-gray-600 dark:text-gray-300">
+						{message.farmHomeSectionThreeBubbleOneDesc()}
+					</p>
+				</div>
+
+				<div
+					class="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm dark:border-zinc-700 dark:bg-zinc-900"
+				>
+					<p class="font-semibold">{message.farmHomeSectionThreeBubbleTwoTitle()}</p>
+					<p class="mt-1 text-sm text-gray-600 dark:text-gray-300">
+						{message.farmHomeSectionThreeBubbleTwoDesc()}
+					</p>
+				</div>
+
+				<div
+					class="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm dark:border-zinc-700 dark:bg-zinc-900"
+				>
+					<p class="font-semibold">{message.farmHomeSectionThreeBubbleThreeTitle()}</p>
+					<p class="mt-1 text-sm text-gray-600 dark:text-gray-300">
+						{message.farmHomeSectionThreeBubbleThreeDesc()}
+					</p>
+				</div>
+
+				<div
+					class="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm dark:border-zinc-700 dark:bg-zinc-900"
+				>
+					<p class="font-semibold">{message.farmHomeSectionThreeBubbleFourTitle()}</p>
+					<p class="mt-1 text-sm text-gray-600 dark:text-gray-300">
+						{message.farmHomeSectionThreeBubbleFourDesc()}
+					</p>
+				</div>
+			</div>
+
+			<div class="mt-6 flex flex-wrap gap-3">
+				<button
+					class="rounded-xl bg-blue-600 px-5 py-2.5 font-semibold text-white hover:bg-blue-700"
+					onclick={() => go('/massage/book-appointment')}
+				>
+					{message.bookAppointmentAsPlainText()}
+				</button>
+
+				<button
+					class="rounded-xl border border-gray-300 px-5 py-2.5 font-semibold hover:bg-gray-50 dark:border-zinc-700 dark:hover:bg-zinc-800"
+					onclick={() => scrollToId('contact')}
+				>
+					{message.contactAsPlainText()}
+				</button>
+			</div>
+		</div>
+	</div>
+
+	<!-- CONTACT -->
+	<div id="contact" class="mt-14 grid scroll-mt-24 items-center gap-8 md:grid-cols-2">
+		<!-- Text left (alternate) -->
+		<div>
+			<h2 class="text-3xl font-bold tracking-tight">{message.contactAsPlainText()}</h2>
+
+			<!-- You don't have a key for this paragraph in your list, so it stays hardcoded for now -->
+			<p class="mt-3 max-w-prose text-gray-600 dark:text-gray-300">
+				Questions about availability, services, or accessibility? Reach out anytime — we’ll get back
+				quickly.
+			</p>
+
+			<div class="mt-5 grid gap-3">
+				<p class="mt-1 text-sm text-gray-700 dark:text-gray-200">
+					{message.farmHomeSectionFourPhoneNumber()}
+				</p>
+
+				<p class="mt-1 text-sm text-gray-700 dark:text-gray-200">
+					{message.farmHomeSectionFourEmail()}
+				</p>
+
+				<p class="mt-1 text-sm text-gray-700 dark:text-gray-200">
+					{message.farmHomeSectionFourAddress()}
+				</p>
+			</div>
+
+			<div class="mt-6 flex flex-wrap gap-3">
+				<button
+					class="rounded-xl bg-blue-600 px-5 py-2.5 font-semibold text-white hover:bg-blue-700"
+					onclick={() => go('/massage/book-appointment')}
+				>
+					{message.getStartedAsPlainText()}
+				</button>
+
+				<button
+					class="rounded-xl border border-gray-300 px-5 py-2.5 font-semibold hover:bg-gray-50 dark:border-zinc-700 dark:hover:bg-zinc-800"
+					onclick={() => scrollToId('services')}
+				>
+					{message.servicesAsPlainText()}
+				</button>
+			</div>
+		</div>
+
+		<!-- Image right -->
+		<div
+			class="overflow-hidden rounded-3xl border border-gray-200 bg-gray-50 shadow-sm dark:border-zinc-700 dark:bg-zinc-900"
+		>
+			<img
+				src="https://images.unsplash.com/photo-1525097487452-6278ff080c31?auto=format&fit=crop&w=1400&q=80"
+				alt="Calm spa setting"
+				class="h-[320px] w-full object-cover md:h-[420px]"
+				loading="lazy"
+			/>
+		</div>
+	</div>
+</section>
