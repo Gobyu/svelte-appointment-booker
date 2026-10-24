@@ -38,7 +38,7 @@
 			<div class="mt-6 flex flex-wrap gap-3">
 				<button
 					class="rounded-xl bg-blue-600 px-5 py-2.5 font-semibold text-white hover:bg-blue-700"
-					onclick={() => go('/massage/book-appointment')}
+					onclick={() => go('/book-appointment')}
 				>
 					{message.getStartedAsPlainText()}
 				</button>
@@ -199,7 +199,7 @@
 			<div class="mt-6 flex flex-wrap gap-3">
 				<button
 					class="rounded-xl bg-blue-600 px-5 py-2.5 font-semibold text-white hover:bg-blue-700"
-					onclick={() => go('/massage/book-appointment')}
+					onclick={() => go('/book-appointment')}
 				>
 					{message.bookAppointmentAsPlainText()}
 				</button>
@@ -243,7 +243,7 @@
 			<div class="mt-6 flex flex-wrap gap-3">
 				<button
 					class="rounded-xl bg-blue-600 px-5 py-2.5 font-semibold text-white hover:bg-blue-700"
-					onclick={() => go('/massage/book-appointment')}
+					onclick={() => go('/book-appointment')}
 				>
 					{message.getStartedAsPlainText()}
 				</button>
